@@ -1,0 +1,14 @@
+__pycache__/
+build/
+spy_dump
+src/version.cc
+src/wib.pb.cc
+src/wib.pb.h
+wib_client
+wib_pb2.py
+wib_server
+*.bin
+sync_fake_time
+.ipynb_checkpoints
+*.ipynb
+data
