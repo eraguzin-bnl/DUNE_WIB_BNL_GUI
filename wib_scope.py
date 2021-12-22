@@ -9,7 +9,7 @@ import numpy as np
 from collections import deque
 
 from wib import WIB
-import wib_pb2 as wibpb
+#import wib_pb2 as wibpb
 
 try:
     from matplotlib.backends.qt_compat import QtCore, QtWidgets, QtGui
