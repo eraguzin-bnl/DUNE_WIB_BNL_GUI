@@ -326,43 +326,40 @@ class SignalView(QtWidgets.QWidget):
         self.resize(None)
         
 
-class WIBScope(QtWidgets.QMainWindow):
-    def __init__(self,wib_server='127.0.0.1',config='default.json',rows=1,cols=1,layout=None):
-        super().__init__()
-        plot_layout = layout
-        
-        self.wib = WIB(wib_server)
-        self.config = config
-        
+class WIBScope(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self,parent=parent)
         self.samples = None
         self.timestamps = None
         
-        self._main = QtWidgets.QWidget()
-        self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setCentralWidget(self._main)
-        layout = QtWidgets.QVBoxLayout(self._main)
+        #self._main = QtWidgets.QWidget()
+        #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
+        #self.setCentralWidget(self._main)
+        layout = QtWidgets.QVBoxLayout(self)
         
         button_layout = QtWidgets.QHBoxLayout()
         
         button = QtWidgets.QPushButton('Reshape')
         button_layout.addWidget(button)
         button.setToolTip('Change the plot grid shape')
-        button.clicked.connect(self.reshape_prompt)
+        #button.clicked.connect(self.reshape_prompt)
         
         button = QtWidgets.QPushButton('Load Layout')
         button_layout.addWidget(button)
         button.setToolTip('Save plot layout and selected signals')
-        button.clicked.connect(self.load_layout)
+        #button.clicked.connect(self.load_layout)
         
         button = QtWidgets.QPushButton('Save Layout')
         button_layout.addWidget(button)
         button.setToolTip('Load plot layout and selected signals')
-        button.clicked.connect(self.save_layout)
+        #button.clicked.connect(self.save_layout)
         
         layout.addLayout(button_layout)
         
         self.grid = QtWidgets.QGridLayout()
         self.views = []
+        rows = 1
+        cols = 1
         self.reshape(rows,cols)
         layout.addLayout(self.grid)
         
@@ -371,24 +368,25 @@ class WIBScope(QtWidgets.QMainWindow):
         button = QtWidgets.QPushButton('Configure')
         nav_layout.addWidget(button)
         button.setToolTip('Configure WIB and front end')
-        button.clicked.connect(self.configure_wib)
+        #button.clicked.connect(self.configure_wib)
         
         button = QtWidgets.QPushButton('Acquire')
         nav_layout.addWidget(button)
         button.setToolTip('Read WIB Spy Buffer')
-        button.clicked.connect(self.acquire_data)
+        #button.clicked.connect(self.acquire_data)
         
         button = QtWidgets.QPushButton('Continuous')
         nav_layout.addWidget(button)
         button.setToolTip('Repeat acquisitions until stopped')
-        button.clicked.connect(self.toggle_continuious)
+        #button.clicked.connect(self.toggle_continuious)
         self.continuious_button = button
         
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.acquire_data)
+        #self.timer = QtCore.QTimer(self)
+        #self.timer.timeout.connect(self.acquire_data)
         
         layout.addLayout(nav_layout)
         
+        plot_layout = None
         if plot_layout:
             self.load_layout(plot_layout)
         self.plot_selected()
@@ -489,20 +487,3 @@ class WIBScope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def configure_wib(self):
         self.wib.configure(self.config)
-        
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Visually display data from a WIB')
-    parser.add_argument('--wib_server','-w',default='127.0.0.1',help='IP of wib_server to connect to [127.0.0.1]')
-    parser.add_argument('--config','-C',default=None,help='WIB configuration to load [defaults]')
-    parser.add_argument('--rows','-r',default=1,type=int,help='Rows of plots [1]')
-    parser.add_argument('--cols','-c',default=1,type=int,help='Columns of plots [1]')
-    parser.add_argument('--layout','-l',default=None,help='Load a saved layout')
-    args = parser.parse_args()
-    
-    
-    qapp = QtWidgets.QApplication([])
-    qapp.setApplicationName('WIB Scope (%s)'%args.wib_server)
-    app = WIBScope(**vars(args))
-    app.show()
-    qapp.exec_()

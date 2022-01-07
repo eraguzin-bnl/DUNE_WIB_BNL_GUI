@@ -10,7 +10,7 @@ from collections import deque
 from math import nan
 
 from wib import WIB
-import wib_pb2 as wibpb
+#import wib_pb2 as wibpb
 
 colors = [(0x00,0x2b,0x36),(0x07,0x36,0x42),(0x58,0x6e,0x75),(0x83,0x94,0x96)]
 
@@ -220,12 +220,10 @@ class WIBPane(QtWidgets.QGroupBox):
             s.load_data(sensors)
             
 class WIBMon(QtWidgets.QMainWindow):
-    def __init__(self,wib_server='127.0.0.1',cli=False):
-        super().__init__()
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self,parent=parent)
         
-        self.cli = cli
-
-        self.wib = WIB(wib_server)
+        self.cli = None
         
         self.setAutoFillBackground(True)
         p = self.palette()
@@ -254,25 +252,11 @@ class WIBMon(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def get_sensors(self):
         print('Querying sensors...')
-        req = wibpb.GetSensors()
-        rep = wibpb.GetSensors.Sensors()
+        #req = wibpb.GetSensors()
+        #rep = wibpb.GetSensors.Sensors()
         self.wib.send_command(req,rep)
         self.wib_pane.load_data(rep)
         for f in self.femb_panes:
             f.load_data(rep)
         if not self.cli:
             QtCore.QTimer.singleShot(1000, self.get_sensors)
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Visually display monitoring info from a WIB')
-    parser.add_argument('--wib_server','-w',default='127.0.0.1',help='IP of wib_server to connect to [127.0.0.1]')
-    parser.add_argument('--cli','-c',action='store_true',help='Query sensors and print to CLI only')
-    args = parser.parse_args()
-    
-    
-    qapp = QtWidgets.QApplication([])
-    qapp.setApplicationName('WIB Monitor (%s)'%args.wib_server)
-    app = WIBMon(**vars(args))
-    if not args.cli:
-        app.show()
-        qapp.exec_()
