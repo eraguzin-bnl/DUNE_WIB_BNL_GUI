@@ -324,14 +324,13 @@ class SignalView(QtWidgets.QWidget):
             
         ax.figure.canvas.draw()
         self.resize(None)
-        
 
 class WIBScope(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self,parent=parent)
+    def __init__(self, wib=None):
+        QtWidgets.QWidget.__init__(self)
         self.samples = None
         self.timestamps = None
-        
+        self.wib = wib
         #self._main = QtWidgets.QWidget()
         #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setCentralWidget(self._main)

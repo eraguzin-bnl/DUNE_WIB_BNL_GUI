@@ -2,8 +2,7 @@ import zmq
 import json
 import numpy as np
 import platform
-if (platform.system() == "Linux"):
-    import wib_pb2 as wibpb
+import wib_pb2 as wibpb
 
 class WIB:
     '''Encapsulates python methods for interacting with wib_server running on a WIB'''

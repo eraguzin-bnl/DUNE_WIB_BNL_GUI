@@ -10,7 +10,7 @@ from collections import deque
 from math import nan
 
 from wib import WIB
-#import wib_pb2 as wibpb
+import wib_pb2 as wibpb
 
 colors = [(0x00,0x2b,0x36),(0x07,0x36,0x42),(0x58,0x6e,0x75),(0x83,0x94,0x96)]
 
@@ -220,40 +220,48 @@ class WIBPane(QtWidgets.QGroupBox):
             s.load_data(sensors)
             
 class WIBMon(QtWidgets.QMainWindow):
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self,parent=parent)
-        
-        self.cli = None
+    def __init__(self, wib=None):
+        QtWidgets.QWidget.__init__(self)
+        self.wib = wib
         
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(*colors[0]))
         self.setPalette(p)
         
-        self._main = QtWidgets.QWidget()
+        self._main = QtWidgets.QScrollArea()
+        self._main.setWidget(QtWidgets.QWidget())
+        
+        #self._main = QtWidgets.QWidget()
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
+        
+        monContent = QtWidgets.QWidget(self._main)
+        
+        monLayout = QtWidgets.QVBoxLayout(monContent)
+        monContent.setLayout(monLayout)
         
         self.wib_pane = WIBPane(self)
         self.femb_panes = [FEMBPane(self,idx) for idx in range(4)]
 
-        layout.addWidget(self.wib_pane)
+        monLayout.addWidget(self.wib_pane)
         fembs = QtWidgets.QWidget(self._main)
         fembs_layout = QtWidgets.QGridLayout(fembs)
         for idx,f in enumerate(self.femb_panes):
             fembs_layout.addWidget(f,idx//2,idx%2)
-        layout.addWidget(fembs)
+        monLayout.addWidget(fembs)
+        self._main.setWidget(monContent)
         
-        if self.cli:
-            self.get_sensors()
-        else:
-            QtCore.QTimer.singleShot(500, self.get_sensors)
+#        if self.cli:
+#            self.get_sensors()
+#        else:
+#            QtCore.QTimer.singleShot(500, self.get_sensors)
         
     @QtCore.pyqtSlot()
     def get_sensors(self):
         print('Querying sensors...')
-        #req = wibpb.GetSensors()
-        #rep = wibpb.GetSensors.Sensors()
+        req = wibpb.GetSensors()
+        rep = wibpb.GetSensors.Sensors()
         self.wib.send_command(req,rep)
         self.wib_pane.load_data(rep)
         for f in self.femb_panes:

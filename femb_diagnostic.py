@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.colors import LogNorm
 
 from wib import WIB
-import wib_pb2 as wibpb
+#import wib_pb2 as wibpb
 
 try:
     from matplotlib.backends.qt_compat import QtCore, QtWidgets, QtGui
@@ -293,39 +293,24 @@ class FFTView(DataView):
         ax.figure.canvas.draw()
         self.resize(None)
         
-class FEMBDiagnostics(QtWidgets.QMainWindow):
-    def __init__(self,wib_server='127.0.0.1',femb=0,cold=False,grid=False,save_to=None,config=None,test=False):
+class FEMBDiagnostics(QtWidgets.QWidget):
+    def __init__(self,wib=None):
         super().__init__()
-        
-        self.wib = WIB(wib_server)
-        self.config = config
-        self.femb = femb
-        self.cold = cold
-        self.test = test
-        self.save_to = save_to
-        
-        self._main = QtWidgets.QWidget()
-        self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.setCentralWidget(self._main)
-        layout = QtWidgets.QVBoxLayout(self._main)
-        
+        QtWidgets.QWidget.__init__(self)
+        self.femb=0
+        #self._main = QtWidgets.QWidget()
+        #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
+        #self.setCentralWidget(self._main)
+        layout = QtWidgets.QVBoxLayout(self)
+        self.wib = wib
         self.grid = QtWidgets.QGridLayout()
-        if grid:
-            self.views = [Hist2DView(femb=femb), FFTView(femb=femb), MeanView(femb=femb), RMSView(femb=femb)]
-            for i,v in enumerate(self.views):
-                self.grid.addWidget(v,i%2,i//2)
-        else:
-            self.views = [Hist2DView(femb=femb), MeanRMSView(femb=femb), FFTView(femb=femb)]
-            for i,v in enumerate(self.views):
-                self.grid.addWidget(v,0,i)
+        self.views = [Hist2DView(femb=self.femb), FFTView(femb=self.femb), MeanView(femb=self.femb), RMSView(femb=self.femb)]
+        for i,v in enumerate(self.views):
+            self.grid.addWidget(v,i%2,i//2)
+                
         layout.addLayout(self.grid)
         
         nav_layout = QtWidgets.QHBoxLayout()
-        
-        button = QtWidgets.QPushButton('Configure')
-        nav_layout.addWidget(button)
-        button.setToolTip('Configure WIB and front end')
-        button.clicked.connect(self.configure_wib)
         
         button = QtWidgets.QPushButton('Acquire')
         nav_layout.addWidget(button)
@@ -370,24 +355,6 @@ class FEMBDiagnostics(QtWidgets.QMainWindow):
     def plot(self,save_to):
         for view in self.views:
             view.plot_data(save_to=save_to)
-            
-    @QtCore.pyqtSlot()
-    def configure_wib(self):
-        if self.config is not None:
-            print('Loading specified config: %s'%self.config)
-            self.wib.configure(self.config)
-        else:
-            print('Generating %s config with FEMB %i enabled'%('cold' if self.cold else 'warm',self.femb))
-            req =  self.wib.defaults()
-            req.cold = self.cold
-            req.adc_test_pattern = self.test
-            req.fembs[self.femb].enabled = True
-            rep = wibpb.Status()
-            print('Configuring WIB')
-            self.wib.send_command(req,rep)
-            if not rep.success:
-                print(rep.extra.decode('ascii'))
-            print('Successful:',rep.success)
         
 
 if __name__ == "__main__":
