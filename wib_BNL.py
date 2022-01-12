@@ -8,6 +8,7 @@ import pickle
 import argparse
 import numpy as np
 import configparser
+import datetime
 from collections import deque
 from wib_scope import WIBScope
 from wib_mon import WIBMon
@@ -69,36 +70,30 @@ class WIBMain(QtWidgets.QMainWindow):
         left_tabs = QtWidgets.QTabWidget()
         
         power_tab = QtWidgets.QWidget()
-        power_tab.layout = QtWidgets.QVBoxLayout(self)
+        power_tab.layout = QtWidgets.QVBoxLayout(power_tab)
         wib_mon = WIBMon(self.wib)
         self.wib_modules.append(wib_mon)
         power_tab.layout.addWidget(wib_mon)
-        power_tab.setLayout(power_tab.layout)
         left_tabs.addTab(power_tab,"Power Monitoring")
-        
         scope_tab = QtWidgets.QWidget()
-        scope_tab.layout = QtWidgets.QVBoxLayout(self)
+        scope_tab.layout = QtWidgets.QVBoxLayout(scope_tab)
         wib_scope = WIBScope(self.wib)
         self.wib_modules.append(wib_scope)
         scope_tab.layout.addWidget(wib_scope)
-        scope_tab.setLayout(scope_tab.layout)
         left_tabs.addTab(scope_tab,"WIB Oscilloscope")
-        
         femb_tab = QtWidgets.QWidget()
-        femb_tab.layout = QtWidgets.QVBoxLayout(self)
+        femb_tab.layout = QtWidgets.QVBoxLayout(femb_tab)
         femb_diagnostics = FEMBDiagnostics(self.wib)
         self.wib_modules.append(femb_diagnostics)
         femb_tab.layout.addWidget(femb_diagnostics)
-        femb_tab.setLayout(femb_tab.layout)
         left_tabs.addTab(femb_tab,"FEMB Diagnostics")
         
         right_tabs = QtWidgets.QTabWidget()
         
         buttons1_tab = QtWidgets.QWidget()
-        buttons1_tab.layout = QtWidgets.QVBoxLayout(self)
-        buttons1_tab.layout.addWidget((WIBButtons1(self.wib, self.text)))
-        buttons1_tab.setLayout(buttons1_tab.layout)
-        right_tabs.addTab(buttons1_tab,"Peek/Poke")
+        buttons1_tab.layout = QtWidgets.QVBoxLayout(buttons1_tab)
+        buttons1_tab.layout.addWidget((WIBButtons1(self.wib, self.gui_print)))
+        right_tabs.addTab(buttons1_tab,"WIB Control")
         
         horiz_splitter.addWidget(left_tabs)
         horiz_splitter.addWidget(right_tabs)
@@ -129,9 +124,14 @@ class WIBMain(QtWidgets.QMainWindow):
             self.wib_address = config["DEFAULT"]["WIB_ADDRESS"]
             self.default_femb = config["DEFAULT"]["FEMB"]
         except:
-            self.text.append("Error: Config file not found at {}. Using default values")
+            self.gui_print("Error: Config file not found at {}. Using default values")
             self.wib_address = "192.168.121.1"
             self.default_femb = 0
+            
+    def gui_print(self, text):
+        self.text.append("---------------")
+        self.text.append(str(datetime.datetime.now()))
+        self.text.append(text)
 
 #PyQT needs a separate class to be the validator
 class ValidIP(QtGui.QValidator):
@@ -145,7 +145,7 @@ class ValidIP(QtGui.QValidator):
             ip = ipaddress.ip_address(ip_string)
             return (QtGui.QValidator.Acceptable, format(ip), pos)
         except:
-            self.parent_reference.text.append("Error: Cannot change IP Address to {}".format(ip_string))
+            self.parent_reference.gui_print("Error: Cannot change IP Address to {}".format(ip_string))
             return (QtGui.QValidator.Invalid, ip_string, pos)
         
 if __name__ == "__main__":

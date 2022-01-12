@@ -294,7 +294,7 @@ class FFTView(DataView):
         self.resize(None)
         
 class FEMBDiagnostics(QtWidgets.QWidget):
-    def __init__(self,wib=None):
+    def __init__(self,wib):
         super().__init__()
         QtWidgets.QWidget.__init__(self)
         self.femb=0

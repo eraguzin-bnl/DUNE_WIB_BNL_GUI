@@ -9,7 +9,7 @@ import numpy as np
 from collections import deque
 
 from wib import WIB
-#import wib_pb2 as wibpb
+import wib_pb2 as wibpb
 
 try:
     from matplotlib.backends.qt_compat import QtCore, QtWidgets, QtGui
@@ -326,7 +326,7 @@ class SignalView(QtWidgets.QWidget):
         self.resize(None)
 
 class WIBScope(QtWidgets.QWidget):
-    def __init__(self, wib=None):
+    def __init__(self, wib):
         QtWidgets.QWidget.__init__(self)
         self.samples = None
         self.timestamps = None
@@ -341,17 +341,17 @@ class WIBScope(QtWidgets.QWidget):
         button = QtWidgets.QPushButton('Reshape')
         button_layout.addWidget(button)
         button.setToolTip('Change the plot grid shape')
-        #button.clicked.connect(self.reshape_prompt)
+        button.clicked.connect(self.reshape_prompt)
         
         button = QtWidgets.QPushButton('Load Layout')
         button_layout.addWidget(button)
         button.setToolTip('Save plot layout and selected signals')
-        #button.clicked.connect(self.load_layout)
+        button.clicked.connect(self.load_layout)
         
         button = QtWidgets.QPushButton('Save Layout')
         button_layout.addWidget(button)
         button.setToolTip('Load plot layout and selected signals')
-        #button.clicked.connect(self.save_layout)
+        button.clicked.connect(self.save_layout)
         
         layout.addLayout(button_layout)
         
@@ -367,21 +367,21 @@ class WIBScope(QtWidgets.QWidget):
         button = QtWidgets.QPushButton('Configure')
         nav_layout.addWidget(button)
         button.setToolTip('Configure WIB and front end')
-        #button.clicked.connect(self.configure_wib)
+        button.clicked.connect(self.configure_wib)
         
         button = QtWidgets.QPushButton('Acquire')
         nav_layout.addWidget(button)
         button.setToolTip('Read WIB Spy Buffer')
-        #button.clicked.connect(self.acquire_data)
+        button.clicked.connect(self.acquire_data)
         
         button = QtWidgets.QPushButton('Continuous')
         nav_layout.addWidget(button)
         button.setToolTip('Repeat acquisitions until stopped')
-        #button.clicked.connect(self.toggle_continuious)
+        button.clicked.connect(self.toggle_continuious)
         self.continuious_button = button
         
-        #self.timer = QtCore.QTimer(self)
-        #self.timer.timeout.connect(self.acquire_data)
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.acquire_data)
         
         layout.addLayout(nav_layout)
         
@@ -471,7 +471,7 @@ class WIBScope(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def acquire_data(self):
-        self.timestamps,self.samples = self.wib.acquire_data(ignore_failure=True)
+        self.timestamps,self.samples = self.wib.acquire_data(buf1 = False, ignore_failure=True)
         
         for view in self.views:
             view.load_data()
@@ -481,7 +481,7 @@ class WIBScope(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def plot_selected(self):
         for view in self.views:
-            view.plot_signals()
+            view.plot_signals(rescale=True)
             
     @QtCore.pyqtSlot()
     def configure_wib(self):

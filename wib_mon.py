@@ -73,9 +73,6 @@ class IVSensor(Sensor):
         else:
             self.V.setText('%0.2f V'%before)
             self.I.setText('%0.1f mA'%current)
-        print('  %-20s %0.2f V'%(self.label+' (before)',before))
-        print('  %-20s %0.2f V'%(self.label+' (after)',after))
-        print('  %-20s %0.1f mA'%(self.label+' (current)',current))
         
     
 class VTSensor(Sensor):
@@ -106,7 +103,6 @@ class VTSensor(Sensor):
         vtemp = self.accessor(sensors)
         temp = (vtemp-self.calib_v)/self.calib_v_per_c + self.calib_c
         self.V.setText('%0.1f C'%temp)
-        print('  %-20s %0.1f C'%(self.label,temp))
         
     
 class TSensor(Sensor):
@@ -134,7 +130,6 @@ class TSensor(Sensor):
     def load_data(self,sensors):
         temp = self.accessor(sensors)
         self.T.setText('%0.1f C'%temp)
-        print('  %-20s %0.1f C'%(self.label,temp))
         
 
 def dc2dc(s,idx):
@@ -174,7 +169,6 @@ class FEMBPane(QtWidgets.QGroupBox):
             layout.addWidget(t,(i+1)//4,(i+1)%4)
         
     def load_data(self,sensors):
-        print('FEMB%i Sensors:'%self.idx)
         self.tpower_sensor.load_data(sensors)
         for s in self.iv_sensors:
             s.load_data(sensors)
@@ -213,17 +207,68 @@ class WIBPane(QtWidgets.QGroupBox):
             layout.addWidget(t,1,i)
         
     def load_data(self,sensors):
-        print('WIB Sensors:')
         for s in self.t_sensors:
             s.load_data(sensors)
         for s in self.iv_sensors:
             s.load_data(sensors)
             
+class PollPane(QtWidgets.QGroupBox):
+    def __init__(self,parent):
+        super().__init__('Polling Information',parent)
+        self.parent = parent
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QtGui.QColor(*colors[0]))
+        self.setPalette(p)
+        self.setStyleSheet('QGroupBox { font-weight: bold; color: #cb4b16; } ')
+        layout = QtWidgets.QHBoxLayout(self)
+                
+        timer_label = QtWidgets.QLabel("Polling interval (ms)")
+        timer_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        timer_label.setStyleSheet('QLabel { font-weight: bold; color: #93a1a1; } ')
+        
+        self.timer_input = QtWidgets.QLineEdit("1000")
+        self.timer_input.setToolTip("How often you want the GUI to poll for power updates, in milliseconds")
+        self.timer_input.setValidator(QtGui.QIntValidator())
+        self.timer_input.editingFinished.connect(self.update_timer)
+        
+        self.status_label = QtWidgets.QLabel("Currently Disabled")
+        self.status_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.status_label.setStyleSheet('QLabel { font-weight: bold; color: #93a1a1; } ')
+        
+        self.poll_status = False
+        self.poll_button = QtWidgets.QPushButton('Enable')
+        self.poll_button.setToolTip('Click to enable polling for power status')
+        self.poll_button.clicked.connect(self.toggle_polling)
+        
+        layout.addWidget(timer_label, stretch=1)
+        layout.addWidget(self.timer_input, stretch=1)
+        layout.addWidget(self.status_label, stretch=1)
+        layout.addWidget(self.poll_button, stretch=1)
+        
+    def update_timer(self):
+        self.parent.timer.setInterval(int(self.timer_input.text()))
+        
+    def toggle_polling(self):
+        if (self.poll_status):
+            print("turning off")
+            self.parent.timer.stop()
+            self.poll_status = False
+            self.status_label.setText("Curently Disabled")
+            self.poll_button.setText("Enable")
+            self.poll_button.setToolTip("Click to enable polling for power status")
+        else:
+            print("turning on")
+            self.parent.timer.start()
+            self.poll_status = True
+            self.status_label.setText("Curently Enabled")
+            self.poll_button.setText("Disable")
+            self.poll_button.setToolTip("Click to disable polling for power status")
+        
 class WIBMon(QtWidgets.QMainWindow):
-    def __init__(self, wib=None):
+    def __init__(self, wib):
         QtWidgets.QWidget.__init__(self)
         self.wib = wib
-        
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(*colors[0]))
@@ -232,7 +277,9 @@ class WIBMon(QtWidgets.QMainWindow):
         self._main = QtWidgets.QScrollArea()
         self._main.setWidget(QtWidgets.QWidget())
         
-        #self._main = QtWidgets.QWidget()
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.get_sensors)
+        
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
         
@@ -250,12 +297,12 @@ class WIBMon(QtWidgets.QMainWindow):
         for idx,f in enumerate(self.femb_panes):
             fembs_layout.addWidget(f,idx//2,idx%2)
         monLayout.addWidget(fembs)
-        self._main.setWidget(monContent)
         
-#        if self.cli:
-#            self.get_sensors()
-#        else:
-#            QtCore.QTimer.singleShot(500, self.get_sensors)
+        self.poll_pane = PollPane(self)
+        monLayout.addWidget(self.poll_pane)
+        
+        self._main.setWidget(monContent)
+ #       self.get_sensors()
         
     @QtCore.pyqtSlot()
     def get_sensors(self):
@@ -266,5 +313,4 @@ class WIBMon(QtWidgets.QMainWindow):
         self.wib_pane.load_data(rep)
         for f in self.femb_panes:
             f.load_data(rep)
-        if not self.cli:
-            QtCore.QTimer.singleShot(1000, self.get_sensors)
+#        QtCore.QTimer.singleShot(1000, self.get_sensors)
