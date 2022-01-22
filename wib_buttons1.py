@@ -31,47 +31,57 @@ class PowerButtons(QtWidgets.QGroupBox):
             button_grid.addWidget(check_box, i, 1)
             self.power_buttons.append(check_box)
             
-        cold_checkbox = QtWidgets.QCheckBox("Cold Config")
+        cold_checkbox = QtWidgets.QCheckBox("Cold Configuration")
+        cold_checkbox.setToolTip('Check to configure WIB with cold settings')
         cold_checkbox.setChecked(False)
         button_grid.addWidget(cold_checkbox, 1, 0)
         self.power_buttons.append(cold_checkbox)
         
+        self.power_sequence_box = QtWidgets.QComboBox(self)
+        self.power_sequence_box.setToolTip('Different power on sequences:\n'
+                                 '1: Full Power On Sequence (run this one when in doubt)\n'
+                                 '2: Leave VDDD and VDDA off, COLDATA needing reset, waiting for a '
+                                 'global ACT signal\n'
+                                 '3: Resume the power on sequence')
+        self.power_sequence_box.addItem("Power Sequence 1")
+        self.power_sequence_box.addItem("Power Sequence 2")
+        self.power_sequence_box.addItem("Power Sequence 3")
+        button_grid.addWidget(self.power_sequence_box, 2, 0)
+        
         power_button = QtWidgets.QPushButton('Power On/Connect')
         power_button.setToolTip('Initial connection and power on with the WIB')
         power_button.clicked.connect(self.power_on)
-        
-        status_button = QtWidgets.QPushButton('WIB Version')
-        status_button.setToolTip('Check onboard WIB Software Version')
-        status_button.clicked.connect(self.status)
-        
         button_grid.addWidget(power_button, 0, 0)
-        button_grid.addWidget(status_button, 4, 0)
         
         self.setLayout(button_grid)
+        
+    def get_sequence_box(self):
+        return self.power_sequence_box.currentIndex()
         
     @QtCore.pyqtSlot()
     def power_on(self):
         req = wibpb.PowerWIB()
-        req.femb0 = True
-        req.femb1 = False
-        req.femb2 = False
-        req.femb3 = False
-        req.cold = False
-        req.stage = 0
+        req.femb0 = self.power_buttons[0]
+        req.femb1 = self.power_buttons[1]
+        req.femb2 = self.power_buttons[2]
+        req.femb3 = self.power_buttons[3]
+        req.cold = self.power_buttons[4]
+        req.stage = self.get_sequence_box()
         rep = wibpb.Status()
-        self.parent.print_gui("Powering on WIB with full power sequence")
+        if (req.stage == 0):
+            self.parent.print_gui("Powering on WIB with full power sequence...")
+        elif (req.stage == 1):
+            self.parent.print_gui("Powering on WIB, leaving VDDD and VDDA off, "
+                                  "COLDATA needing reset, will wait for a global ACT signal")
+        elif (req.stage == 2):
+            self.parent.print_gui("Resuming power ON after external COLDADC reset and synchronization")
+        else:
+            self.parent.print_gui("Error: Somehow an impossible choice was made in the power stage box")
+            return 0
         sys.stdout.flush()
         self.parent.wib.send_command(req,rep)
         self.parent.print_gui(rep.extra.decode('ascii'))
-        self.parent.print_gui("Successful:{}".format(rep.success))
-        
-    @QtCore.pyqtSlot()
-    def status(self):
-        req = wibpb.GetSWVersion()
-        rep = wibpb.GetSWVersion.Version()
-        self.parent.print_gui("Getting Status")
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui('sw_version: %s'%rep.version);
+        self.parent.print_gui(f"Successful:{rep.success}")
 
 class WIBButtons1(QtWidgets.QWidget):
     def __init__(self, wib, print_function):

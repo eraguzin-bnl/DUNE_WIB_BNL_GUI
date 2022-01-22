@@ -14,6 +14,8 @@ from wib_scope import WIBScope
 from wib_mon import WIBMon
 from femb_diagnostic import FEMBDiagnostics
 from wib_buttons1 import WIBButtons1
+from wib_buttons2 import WIBButtons2
+from wib_buttons3 import WIBButtons3
 
 from wib import WIB
 import wib_pb2 as wibpb
@@ -26,6 +28,8 @@ except:
 class WIBMain(QtWidgets.QMainWindow):
     def __init__(self,config_path):
         super().__init__()        
+        text_box = QtWidgets.QGroupBox("text_box")
+        self.text = QtWidgets.QTextBrowser(text_box)
         
         self.parse_config(config_path)
         self.wib = WIB(self.wib_address)
@@ -55,14 +59,17 @@ class WIBMain(QtWidgets.QMainWindow):
         wib_comm_layout.addWidget(load_button)
         load_button.setToolTip('Load previous layout configuration')
         
+        save_button = QtWidgets.QPushButton('Save Log')
+        wib_comm_layout.addWidget(save_button)
+        save_button.setToolTip('Save text log output to disk')
+        save_button.clicked.connect(self.save_log)
+        
         layout.addLayout(wib_comm_layout)
         ###
         #The bottom part of the vertical is a horizontal row of 3 elements:
         #Data display, control, and text feedback. They're all separated by a splitter so they can be resized
         #So it goes from layout -> HBox -> splitter -> individual widgets, which have tab widgets
         #If a tabbed widget will be scrollable, that happens inside that widget's class
-        text_box = QtWidgets.QGroupBox("text_box")
-        self.text = QtWidgets.QTextBrowser(text_box)
         
         wib_function_layout = QtWidgets.QHBoxLayout()
         horiz_splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
@@ -93,6 +100,8 @@ class WIBMain(QtWidgets.QMainWindow):
         buttons1_tab = QtWidgets.QWidget()
         buttons1_tab.layout = QtWidgets.QVBoxLayout(buttons1_tab)
         buttons1_tab.layout.addWidget((WIBButtons1(self.wib, self.gui_print)))
+        buttons1_tab.layout.addWidget((WIBButtons2(self.wib, self.gui_print)))
+        buttons1_tab.layout.addWidget((WIBButtons3(self.wib, self.gui_print)))
         right_tabs.addTab(buttons1_tab,"WIB Control")
         
         horiz_splitter.addWidget(left_tabs)
@@ -113,7 +122,7 @@ class WIBMain(QtWidgets.QMainWindow):
         ip_text_field = self.wib_ip_input.text()
         del self.wib
         self.wib = WIB(ip_text_field)
-        self.text.append("IP Address changed to {}".format(ip_text_field))
+        self.text.append(f"IP Address changed to {ip_text_field}")
         for i in self.wib_modules:
             i.wib = self.wib
         
@@ -132,6 +141,13 @@ class WIBMain(QtWidgets.QMainWindow):
         self.text.append("---------------")
         self.text.append(str(datetime.datetime.now()))
         self.text.append(text)
+        
+    def save_log(self):
+        name = QtWidgets.QFileDialog.getSaveFileName(None, "Save Text Log", "", "*.txt")
+        file = open(name[0],'w')
+        text = self.text.toPlainText()
+        file.write(text)
+        file.close()
 
 #PyQT needs a separate class to be the validator
 class ValidIP(QtGui.QValidator):
@@ -145,7 +161,7 @@ class ValidIP(QtGui.QValidator):
             ip = ipaddress.ip_address(ip_string)
             return (QtGui.QValidator.Acceptable, format(ip), pos)
         except:
-            self.parent_reference.gui_print("Error: Cannot change IP Address to {}".format(ip_string))
+            self.parent_reference.gui_print(f"Error: Cannot change IP Address to {ip_string}")
             return (QtGui.QValidator.Invalid, ip_string, pos)
         
 if __name__ == "__main__":
