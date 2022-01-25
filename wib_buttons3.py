@@ -16,6 +16,35 @@ try:
 except:
     from matplotlib.backends.backend_qt4agg import QtCore, QtWidgets, QtGui
     
+#This was absurdly annoying. QSpinBox can do hexidecimal input fields with:
+#self.reg_box.setDisplayIntegerBase(16)
+#However, QSpinBox only goes up to 2^31 bits. People have done their own kluges:
+#https://stackoverflow.com/questions/26581444/qspinbox-with-unsigned-int-for-hex-input
+#But here's mine. I wanted to use a QDoubleSpinBox for the additional range, but it doesn't have
+#setDisplayIntegerBase. To organize it and overwrite the proper functions, I made it its own class
+    
+#So first I needed to set a validator that makes sure the input is hex. With just a validator, there's no hex.
+#You scroll up and it just does decimal numbers. You try to put in a hex value and it treats it as 0
+#So that's why I needed to overwrite valueFromText. It takes the input and writes it as the internal spinbox
+#value as if it were a hex. Without that, I found that pressing up and down on the arrows would ignore the
+#hex values that you typed. Then when the value is validated, I need textFromValue to print it in hex format
+    
+class MySpinBox(QtWidgets.QDoubleSpinBox):
+    def __init__(self, parent=None):
+        super(MySpinBox, self).__init__(parent)
+        # any RegExp that matches the allowed input
+        self.validator = QtGui.QRegExpValidator(QtCore.QRegExp("[x0-9A-Fa-f]{1,8}"), self)
+        #self.setPrefix("0x")
+        
+    def validate(self, text, pos):
+        return self.validator.validate(text, pos)
+    
+    def textFromValue(self, double):
+        return format(int(double), 'x')
+    
+    def valueFromText(self, double):
+        return int(double, 16)
+    
 class WIBRegControlButtons(QtWidgets.QGroupBox):
     def __init__(self,parent, name, bits):
         super().__init__(f"{name} Registers ({bits} bit)",parent)
@@ -37,18 +66,19 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         reading_label = QtWidgets.QLabel("Result")
         reading_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         
-        self.reg_box = QtWidgets.QDoubleSpinBox()
-        print((2**bits)-1)
+        self.reg_box = MySpinBox()
         self.reg_box.setRange(0, (2**bits)-1)
-        self.reg_box.setDisplayIntegerBase(16)
+#        self.reg_box.setValue(0)
+#        self.reg_box.setDisplayIntegerBase(16)
         font = self.reg_box.font()
         font.setCapitalization(QtGui.QFont.AllUppercase)
         self.reg_box.setFont(font)
         self.reg_box.setToolTip(f"{name} Register ({bits} bits, hex)")
         
-        self.val_box = QtWidgets.QDoubleSpinBox()
+        self.val_box = MySpinBox()
         self.val_box.setRange(0, (2**bits)-1)
-        self.val_box.setDisplayIntegerBase(16)
+#        self.val_box.setValue(0)
+#        self.val_box.setDisplayIntegerBase(16)
         self.val_box.setFont(font)
         self.val_box.setToolTip("{name} Register Value({bits} bits, hex)")
         
