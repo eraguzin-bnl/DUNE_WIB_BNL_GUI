@@ -100,8 +100,8 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         write_button.setToolTip('Write the value of this register')
         
         if (name == "WIB"):
-            read_button.clicked.connect(lambda: self.wib_peek(self.reg_box.value()))
-            write_button.clicked.connect(lambda: self.wib_poke(self.reg_box.value(), self.val_box.value()))
+            read_button.clicked.connect(lambda: self.wib_peek(int(self.reg_box.value())))
+            write_button.clicked.connect(lambda: self.wib_poke(int((self.reg_box.value())), int(self.val_box.value())))
             
         else:
             femb_label = QtWidgets.QLabel("FEMB(0-3)")
@@ -139,15 +139,15 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             self.page_box.setToolTip("8 bit page in COLDATA")
             button_grid.addWidget(self.page_box, 1, 6)
             
-            read_button.clicked.connect(lambda: self.coldata_peek(self.femb_box.value(),
-                                                                  self.coldata_box.value(),
-                                                                  self.page_box.value(),
-                                                                  self.reg_box.value()))
-            write_button.clicked.connect(lambda: self.coldata_poke(self.femb_box.value(),
-                                                                  self.coldata_box.value(),
-                                                                  self.page_box.value(),
-                                                                  self.reg_box.value(),
-                                                                  self.val_box.value()))
+            read_button.clicked.connect(lambda: self.coldata_peek(int(self.femb_box.value()),
+                                                                  int(self.coldata_box.value()),
+                                                                  int(self.page_box.value()),
+                                                                  int(self.reg_box.value())))
+            write_button.clicked.connect(lambda: self.coldata_poke(int(self.femb_box.value()),
+                                                                  int(self.coldata_box.value()),
+                                                                  int(self.page_box.value()),
+                                                                  int(self.reg_box.value()),
+                                                                  int(self.val_box.value())))
         
         button_grid.addWidget(read_button, 6, 2)
         button_grid.addWidget(write_button, 6, 4)
@@ -160,17 +160,17 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         req = wibpb.Peek()
         rep = wibpb.RegValue()
         req.addr = reg
-        self.parent.wib.send_command(req,rep)
-        self.result.setText(f"{rep.value:08x}")
-        self.parent.print_gui(f"Register 0x{rep.addr:016X} was read as 0x{rep.value:08X}")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.result.setText(f"{rep.value:08x}")
+            self.parent.print_gui(f"Register 0x{rep.addr:016X} was read as 0x{rep.value:08X}")
         
     def wib_poke(self, reg, val):
         req = wibpb.Poke()
         rep = wibpb.RegValue()
         req.addr = reg
         req.value = val
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui(f"Register 0x{rep.addr:016X} was set to 0x{rep.value:08X}")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Register 0x{rep.addr:016X} was set to 0x{rep.value:08X}")
         
     def coldata_peek(self, femb, coldata, page, reg):
         req = wibpb.CDPeek()
@@ -179,11 +179,11 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         req.coldata_idx = coldata
         req.reg_page = page
         req.reg_addr = reg
-        self.parent.wib.send_command(req,rep)
-        self.result.setText(f"{rep.data:02x}")
-        self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
-        self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
-        self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was read as 0x{rep.data:02X}")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.result.setText(f"{rep.data:02x}")
+            self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
+            self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
+            self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was read as 0x{rep.data:02X}")
         
     def coldata_poke(self, femb, coldata, page, reg, data):
         req = wibpb.CDPoke()
@@ -193,10 +193,10 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         req.reg_page = page
         req.reg_addr = reg
         req.data = data
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
-        self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
-        self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was written to 0x{rep.data:02X}")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
+            self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
+            self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was written to 0x{rep.data:02X}")
         
 class WIBButtons3(QtWidgets.QWidget):
     def __init__(self, wib, print_function):

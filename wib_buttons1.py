@@ -61,11 +61,11 @@ class PowerButtons(QtWidgets.QGroupBox):
     @QtCore.pyqtSlot()
     def power_on(self):
         req = wibpb.PowerWIB()
-        req.femb0 = self.power_buttons[0]
-        req.femb1 = self.power_buttons[1]
-        req.femb2 = self.power_buttons[2]
-        req.femb3 = self.power_buttons[3]
-        req.cold = self.power_buttons[4]
+        req.femb0 = self.power_buttons[0].checkState()
+        req.femb1 = self.power_buttons[1].checkState()
+        req.femb2 = self.power_buttons[2].checkState()
+        req.femb3 = self.power_buttons[3].checkState()
+        req.cold = self.power_buttons[4].checkState()
         req.stage = self.get_sequence_box()
         rep = wibpb.Status()
         if (req.stage == 0):
@@ -79,9 +79,9 @@ class PowerButtons(QtWidgets.QGroupBox):
             self.parent.print_gui("Error: Somehow an impossible choice was made in the power stage box")
             return 0
         sys.stdout.flush()
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui(rep.extra.decode('ascii'))
-        self.parent.print_gui(f"Successful:{rep.success}")
+        if not self.parent.wib.send_command(req,rep, self.parent.print_gui):
+            self.parent.print_gui(rep.extra.decode('ascii'))
+            self.parent.print_gui(f"Successful:{rep.success}")
 
 class WIBButtons1(QtWidgets.QWidget):
     def __init__(self, wib, print_function):

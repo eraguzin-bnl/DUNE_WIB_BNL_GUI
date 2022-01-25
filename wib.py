@@ -10,13 +10,22 @@ class WIB:
     def __init__(self,wib_server='127.0.0.1'):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
+        self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         self.socket.connect('tcp://%s:1234'%wib_server)
 
-    def send_command(self,req,rep):
+    def send_command(self,req,rep,print_gui):
         cmd = wibpb.Command()
         cmd.cmd.Pack(req)
-        self.socket.send(cmd.SerializeToString())
-        rep.ParseFromString(self.socket.recv())
+        try:
+            self.socket.send(cmd.SerializeToString())
+        except:
+            print_gui("Socket timed out while sending. Please check to make sure the network cable is connected and restart the GUI!")
+            return 1
+        try:
+            rep.ParseFromString(self.socket.recv())
+        except:
+            print_gui("Socket timed out while receiving. Please check to make sure the network cable is connected and restart the GUI!")
+            return 1
         
     def defaults(self):
         req = wibpb.ConfigureWIB()

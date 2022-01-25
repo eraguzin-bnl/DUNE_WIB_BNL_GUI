@@ -68,8 +68,8 @@ class WIBClientButtons(QtWidgets.QGroupBox):
     def reboot(self):
         req = wibpb.Reboot()
         rep = wibpb.Empty()
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui('Rebooting...')
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui('Rebooting...\nPlease wait 30 seconds...')
         
     @QtCore.pyqtSlot()
     def log(self):
@@ -94,17 +94,17 @@ class WIBClientButtons(QtWidgets.QGroupBox):
             self.parent.print_gui("Error: Somehow an impossible choice was made in the log box")
             return 0
         rep = wibpb.LogControl.Log()
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui(rep.contents.decode('ascii'),end='')
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(rep.contents.decode('utf8'))
         
     @QtCore.pyqtSlot()
     def fw_timestamp(self):
         req = wibpb.GetTimestamp()
         rep = wibpb.GetTimestamp.Timestamp()
-        self.parent.print_gui("Getting Firmware Timestamp...")
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui('Firmware Timestamp Code: 0x%08X'%rep.timestamp);
-        self.parent.print_gui('decoded: %i/%i/%i %i:%i:%i'%(rep.year,
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui("Getting Firmware Timestamp...")
+            self.parent.print_gui('Firmware Timestamp Code: 0x%08X'%rep.timestamp);
+            self.parent.print_gui('decoded: %i/%i/%i %i:%i:%i'%(rep.year,
                                                             rep.month,rep.day,rep.hour,rep.min,rep.sec));
         
     @QtCore.pyqtSlot()
@@ -112,22 +112,22 @@ class WIBClientButtons(QtWidgets.QGroupBox):
         req = wibpb.GetSWVersion()
         rep = wibpb.GetSWVersion.Version()
         self.parent.print_gui("Getting Status...")
-        self.parent.wib.send_command(req,rep)
-        self.parent.print_gui(f"Software Version: {rep.version}")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Software Version: {rep.version}")
         
     @QtCore.pyqtSlot()
     def timing_reset(self):
         req = wibpb.ResetTiming()
         rep = wibpb.GetTimingStatus.TimingStatus()
-        self.parent.wib.send_command(req,rep)
-        self.print_timing_status(rep)
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.print_timing_status(rep)
         
     @QtCore.pyqtSlot()
     def timing_status(self):
         req = wibpb.GetTimingStatus()
         rep = wibpb.GetTimingStatus.TimingStatus()
-        self.parent.wib.send_command(req,rep)
-        self.print_timing_status(rep)
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.print_timing_status(rep)
         
     def print_timing_status(self,timing_status):
         self.parent.print_gui('--- PLL INFO ---')

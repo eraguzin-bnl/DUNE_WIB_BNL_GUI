@@ -78,7 +78,7 @@ class WIBMain(QtWidgets.QMainWindow):
         
         power_tab = QtWidgets.QWidget()
         power_tab.layout = QtWidgets.QVBoxLayout(power_tab)
-        wib_mon = WIBMon(self.wib)
+        wib_mon = WIBMon(self.wib, self.gui_print)
         self.wib_modules.append(wib_mon)
         power_tab.layout.addWidget(wib_mon)
         left_tabs.addTab(power_tab,"Power Monitoring")

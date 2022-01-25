@@ -251,14 +251,12 @@ class PollPane(QtWidgets.QGroupBox):
         
     def toggle_polling(self):
         if (self.poll_status):
-            print("turning off")
             self.parent.timer.stop()
             self.poll_status = False
             self.status_label.setText("Curently Disabled")
             self.poll_button.setText("Enable")
             self.poll_button.setToolTip("Click to enable polling for power status")
         else:
-            print("turning on")
             self.parent.timer.start()
             self.poll_status = True
             self.status_label.setText("Curently Enabled")
@@ -266,9 +264,10 @@ class PollPane(QtWidgets.QGroupBox):
             self.poll_button.setToolTip("Click to disable polling for power status")
         
 class WIBMon(QtWidgets.QMainWindow):
-    def __init__(self, wib):
+    def __init__(self, wib, gui_print):
         QtWidgets.QWidget.__init__(self)
         self.wib = wib
+        self.gui_print = gui_print
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(*colors[0]))
@@ -279,6 +278,7 @@ class WIBMon(QtWidgets.QMainWindow):
         
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.get_sensors)
+        self.timer.setInterval(1000)
         
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
@@ -306,11 +306,10 @@ class WIBMon(QtWidgets.QMainWindow):
         
     @QtCore.pyqtSlot()
     def get_sensors(self):
-        print('Querying sensors...')
         req = wibpb.GetSensors()
         rep = wibpb.GetSensors.Sensors()
-        self.wib.send_command(req,rep)
-        self.wib_pane.load_data(rep)
-        for f in self.femb_panes:
-            f.load_data(rep)
-#        QtCore.QTimer.singleShot(1000, self.get_sensors)
+        if not self.wib.send_command(req,rep, self.gui_print):
+            self.wib_pane.load_data(rep)
+            for f in self.femb_panes:
+                f.load_data(rep)
+    #        QtCore.QTimer.singleShot(1000, self.get_sensors)
