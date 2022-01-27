@@ -24,7 +24,11 @@ else:
         FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
         
 class CustomNavToolbar(NavigationToolbar):
-    NavigationToolbar.toolitems = (
+    
+    
+    def __init__(self, *args, **kwargs):
+        '''parent is expected to be a SignalView object'''
+        self.toolitems = (
         ('Signals','Choose signal traces to show', 'choose', 'choose'),
         ('Autoscale', 'Autoscale axes for each new event', 'autoscale','autoscale'),
         ('Legend', 'Toggle legend', 'legend','legend'),
@@ -38,9 +42,6 @@ class CustomNavToolbar(NavigationToolbar):
         (None, None, None, None),
         ('Save', 'Save the figure', 'filesave', 'save_figure')
     )
-    
-    def __init__(self, *args, **kwargs):
-        '''parent is expected to be a SignalView object'''
         super().__init__(*args, **kwargs)
         
     def choose(self):

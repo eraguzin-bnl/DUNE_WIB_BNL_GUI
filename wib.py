@@ -10,12 +10,15 @@ class WIB:
     def __init__(self,wib_server='127.0.0.1'):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         self.socket.connect('tcp://%s:1234'%wib_server)
 
-    def send_command(self,req,rep,print_gui):
+    def send_command(self,req,rep,print_gui=None):
         cmd = wibpb.Command()
         cmd.cmd.Pack(req)
+        if (type(req) == type(wibpb.PowerWIB())):
+            self.socket.setsockopt(zmq.RCVTIMEO, 60000) # milliseconds
+        else:
+            self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         try:
             self.socket.send(cmd.SerializeToString())
         except:
