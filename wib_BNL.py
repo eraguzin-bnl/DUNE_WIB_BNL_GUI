@@ -16,6 +16,7 @@ from femb_diagnostic import FEMBDiagnostics
 from wib_buttons1 import WIBButtons1
 from wib_buttons2 import WIBButtons2
 from wib_buttons3 import WIBButtons3
+from wib_buttons4 import WIBButtons4
 
 from wib import WIB
 import wib_pb2 as wibpb
@@ -51,18 +52,23 @@ class WIBMain(QtWidgets.QMainWindow):
         self.wib_ip_input.editingFinished.connect(self.wib_address_edited)
         self.wib_ip_input.setToolTip("Insert WIB IP Address and push 'enter'")
         
-        save_button = QtWidgets.QPushButton('Save Configuration')
-        wib_comm_layout.addWidget(save_button)
-        save_button.setToolTip('Save current layout configuration')
+        restart_button = QtWidgets.QPushButton('Restart Communication')
+        wib_comm_layout.addWidget(restart_button)
+        restart_button.setToolTip('Restart ZeroMQ interface (usually needed after a timeout)')
+        restart_button.clicked.connect(self.restart_zmq)
         
-        load_button = QtWidgets.QPushButton('Load Configuration')
-        wib_comm_layout.addWidget(load_button)
-        load_button.setToolTip('Load previous layout configuration')
+        save_config_button = QtWidgets.QPushButton('Save Configuration')
+        wib_comm_layout.addWidget(save_config_button)
+        save_config_button.setToolTip('Save current layout configuration')
         
-        save_button = QtWidgets.QPushButton('Save Log')
-        wib_comm_layout.addWidget(save_button)
-        save_button.setToolTip('Save text log output to disk')
-        save_button.clicked.connect(self.save_log)
+        load_config_button = QtWidgets.QPushButton('Load Configuration')
+        wib_comm_layout.addWidget(load_config_button)
+        load_config_button.setToolTip('Load previous layout configuration')
+        
+        save_log_button = QtWidgets.QPushButton('Save Log')
+        wib_comm_layout.addWidget(save_log_button)
+        save_log_button.setToolTip('Save text log output to disk')
+        save_log_button.clicked.connect(self.save_log)
         
         layout.addLayout(wib_comm_layout)
         ###
@@ -97,12 +103,25 @@ class WIBMain(QtWidgets.QMainWindow):
         
         right_tabs = QtWidgets.QTabWidget()
         
-        buttons1_tab = QtWidgets.QWidget()
-        buttons1_tab.layout = QtWidgets.QVBoxLayout(buttons1_tab)
-        buttons1_tab.layout.addWidget((WIBButtons1(self.wib, self.gui_print)))
-        buttons1_tab.layout.addWidget((WIBButtons2(self.wib, self.gui_print)))
-        buttons1_tab.layout.addWidget((WIBButtons3(self.wib, self.gui_print)))
-        right_tabs.addTab(buttons1_tab,"WIB Control")
+        wib_buttons_tab = QtWidgets.QWidget()
+        wib_buttons_tab.layout = QtWidgets.QVBoxLayout(wib_buttons_tab)
+        buttons1 = WIBButtons1(self.wib, self.gui_print)
+        wib_buttons_tab.layout.addWidget(buttons1)
+        self.wib_modules.append(buttons1)
+        buttons2 = WIBButtons2(self.wib, self.gui_print)
+        wib_buttons_tab.layout.addWidget(buttons2)
+        self.wib_modules.append(buttons2)
+        buttons3 = WIBButtons3(self.wib, self.gui_print)
+        wib_buttons_tab.layout.addWidget(buttons3)
+        self.wib_modules.append(buttons3)
+        right_tabs.addTab(wib_buttons_tab,"WIB Control")
+        
+        femb_buttons_tab = QtWidgets.QWidget()
+        femb_buttons_tab.layout = QtWidgets.QVBoxLayout(femb_buttons_tab)
+        buttons4 = WIBButtons4(self.wib, self.gui_print)
+        femb_buttons_tab.layout.addWidget(buttons4)
+        self.wib_modules.append(buttons4)
+        right_tabs.addTab(femb_buttons_tab,"FEMB Control")
         
         horiz_splitter.addWidget(left_tabs)
         horiz_splitter.addWidget(right_tabs)
@@ -148,6 +167,14 @@ class WIBMain(QtWidgets.QMainWindow):
         text = self.text.toPlainText()
         file.write(text)
         file.close()
+        
+    def restart_zmq(self):
+        ip_text_field = self.wib_ip_input.text()
+        del self.wib
+        self.wib = WIB(ip_text_field)
+        self.text.append(f"ZeroMQ interface restarted with IP Address of {ip_text_field}")
+        for i in self.wib_modules:
+            i.wib = self.wib
 
 #PyQT needs a separate class to be the validator
 class ValidIP(QtGui.QValidator):

@@ -224,27 +224,36 @@ class PollPane(QtWidgets.QGroupBox):
         layout = QtWidgets.QHBoxLayout(self)
                 
         timer_label = QtWidgets.QLabel("Polling interval (ms)")
-        timer_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        timer_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+#        timer_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         timer_label.setStyleSheet('QLabel { font-weight: bold; color: #93a1a1; } ')
         
         self.timer_input = QtWidgets.QLineEdit("1000")
+        self.timer_input.setMaximumWidth(100)
+        self.timer_input.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.timer_input.setToolTip("How often you want the GUI to poll for power updates, in milliseconds")
         self.timer_input.setValidator(QtGui.QIntValidator())
         self.timer_input.editingFinished.connect(self.update_timer)
         
         self.status_label = QtWidgets.QLabel("Currently Disabled")
-        self.status_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        self.status_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+#        self.status_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         self.status_label.setStyleSheet('QLabel { font-weight: bold; color: #93a1a1; } ')
         
         self.poll_status = False
         self.poll_button = QtWidgets.QPushButton('Enable')
+        self.poll_button.setMaximumWidth(100)
+        self.poll_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.poll_button.setToolTip('Click to enable polling for power status')
         self.poll_button.clicked.connect(self.toggle_polling)
         
-        layout.addWidget(timer_label, stretch=1)
-        layout.addWidget(self.timer_input, stretch=1)
-        layout.addWidget(self.status_label, stretch=1)
-        layout.addWidget(self.poll_button, stretch=1)
+        self.space_filler = QtWidgets.QLabel()
+        
+        layout.addWidget(timer_label)
+        layout.addWidget(self.timer_input)
+        layout.addWidget(self.status_label)
+        layout.addWidget(self.poll_button)
+        layout.addWidget(QtWidgets.QLabel())
         
     def update_timer(self):
         self.parent.timer.setInterval(int(self.timer_input.text()))
