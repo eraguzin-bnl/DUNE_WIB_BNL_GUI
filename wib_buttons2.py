@@ -50,6 +50,10 @@ class WIBClientButtons(QtWidgets.QGroupBox):
         tstatus_button = QtWidgets.QPushButton('Timing Status')
         tstatus_button.setToolTip('Return the status of the timing endpoint')
         tstatus_button.clicked.connect(self.timing_status)
+
+        adc_cal_button = QtWidgets.QPushButton('ADC Calibrate')
+        adc_cal_button.setToolTip('Begin the ADC Calibration routine')
+        adc_cal_button.clicked.connect(self.adc_cal)
         
         button_grid.addWidget(self.logBox, 0, 0)
         button_grid.addWidget(log_button, 0, 1)
@@ -58,6 +62,7 @@ class WIBClientButtons(QtWidgets.QGroupBox):
         button_grid.addWidget(status_button, 2, 0)
         button_grid.addWidget(treset_button, 2, 1)
         button_grid.addWidget(tstatus_button, 3, 0)
+        button_grid.addWidget(adc_cal_button, 3, 1)
         
         self.setLayout(button_grid)
         
@@ -128,6 +133,14 @@ class WIBClientButtons(QtWidgets.QGroupBox):
         rep = wibpb.GetTimingStatus.TimingStatus()
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
             self.print_timing_status(rep)
+
+    @QtCore.pyqtSlot()
+    def adc_cal(self):
+        req = wibpb.Calibrate()
+        rep = wibpb.Status()
+        self.parent.print_gui("Initiating ADC Calibration routine...")
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Success:{rep.success}")
         
     def print_timing_status(self,timing_status):
         self.parent.print_gui('--- PLL INFO ---')

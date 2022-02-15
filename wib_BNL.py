@@ -17,6 +17,8 @@ from wib_buttons1 import WIBButtons1
 from wib_buttons2 import WIBButtons2
 from wib_buttons3 import WIBButtons3
 from wib_buttons4 import WIBButtons4
+from wib_buttons5 import WIBButtons5
+from wib_buttons6 import WIBButtons6
 
 from wib import WIB
 import wib_pb2 as wibpb
@@ -31,7 +33,7 @@ class WIBMain(QtWidgets.QMainWindow):
         super().__init__()        
         text_box = QtWidgets.QGroupBox("text_box")
         self.text = QtWidgets.QTextBrowser(text_box)
-        
+        self.showMaximized()
         self.parse_config(config_path)
         self.wib = WIB(self.wib_address)
         self.wib_modules = []
@@ -114,6 +116,9 @@ class WIBMain(QtWidgets.QMainWindow):
         buttons3 = WIBButtons3(self.wib, self.gui_print)
         wib_buttons_tab.layout.addWidget(buttons3)
         self.wib_modules.append(buttons3)
+        buttons6 = WIBButtons6(self.wib, self.gui_print)
+        wib_buttons_tab.layout.addWidget(buttons6)
+        self.wib_modules.append(buttons6)
         right_tabs.addTab(wib_buttons_tab,"WIB Control")
         
         femb_buttons_tab = QtWidgets.QWidget()
@@ -122,12 +127,19 @@ class WIBMain(QtWidgets.QMainWindow):
         femb_buttons_tab.layout.addWidget(buttons4)
         self.wib_modules.append(buttons4)
         right_tabs.addTab(femb_buttons_tab,"FEMB Control")
+
+        power_buttons_tab = QtWidgets.QWidget()
+        power_buttons_tab.layout = QtWidgets.QVBoxLayout(power_buttons_tab)
+        buttons5 = WIBButtons5(self.wib, self.gui_print)
+        power_buttons_tab.layout.addWidget(buttons5)
+        self.wib_modules.append(buttons5)
+        right_tabs.addTab(power_buttons_tab,"Power Config")
         
         horiz_splitter.addWidget(left_tabs)
         horiz_splitter.addWidget(right_tabs)
         horiz_splitter.addWidget(self.text)
-        horiz_splitter.setStretchFactor(1, 1)
-        horiz_splitter.setSizes([150, 150, 50])
+#        horiz_splitter.setStretchFactor(1, 1)
+#        horiz_splitter.setSizes([150, 150, 50])
         
         wib_function_layout.addWidget(horiz_splitter)
         layout.addLayout(wib_function_layout)

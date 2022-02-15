@@ -98,6 +98,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         sb = QtWidgets.QSpinBox()
         sb.setRange(0, 0xFFFFFFF)
         sb.setDisplayIntegerBase(16)
+        sb.setValue(255)
         font = sb.font()
         font.setCapitalization(QtGui.QFont.AllUppercase)
         sb.setFont(font)
@@ -108,6 +109,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         sb = QtWidgets.QSpinBox()
         sb.setRange(0, 0xFFFFFFF)
         sb.setDisplayIntegerBase(16)
+        sb.setValue(255)
         font = sb.font()
         font.setCapitalization(QtGui.QFont.AllUppercase)
         sb.setFont(font)
@@ -118,6 +120,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         sb = QtWidgets.QSpinBox()
         sb.setRange(0, 0xFFFFFFF)
         sb.setDisplayIntegerBase(16)
+        sb.setValue(255)
         font = sb.font()
         font.setCapitalization(QtGui.QFont.AllUppercase)
         sb.setFont(font)
@@ -229,7 +232,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button = QtWidgets.QPushButton('Send')
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
-        button_grid.addWidget(send_button, offset+4, 1)
+        button_grid.addWidget(send_button, offset+4, 1, 1, 4)
     def sendFEMB(self):
         req = wibpb.ConfigureWIB()
         for i in range(self.fembs):

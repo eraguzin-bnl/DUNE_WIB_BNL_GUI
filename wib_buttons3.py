@@ -191,7 +191,7 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         rep = wibpb.RegValue()
         req.addr = reg
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.result.setText(f"{rep.value:08x}")
+            self.result.setText(f"0x{rep.value:08x}")
             self.parent.print_gui(f"Register 0x{rep.addr:016X} was read as 0x{rep.value:08X}")
         
     def wib_poke(self, reg, val):
@@ -210,7 +210,7 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         req.reg_page = page
         req.reg_addr = reg
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.result.setText(f"{rep.data:02x}")
+            self.result.setText(f"0x{rep.data:02x}")
             self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
             self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
             self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was read as 0x{rep.data:02X}")
