@@ -282,6 +282,7 @@ class WIBMon(QtWidgets.QMainWindow):
         p.setColor(self.backgroundRole(), QtGui.QColor(*colors[0]))
         self.setPalette(p)
         
+        #This method with _main, monContent and monLayout allows there to be a horizontal scrollbar
         self._main = QtWidgets.QScrollArea()
         self._main.setWidget(QtWidgets.QWidget())
         
@@ -291,7 +292,6 @@ class WIBMon(QtWidgets.QMainWindow):
         
         self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self._main)
-        
         monContent = QtWidgets.QWidget(self._main)
         
         monLayout = QtWidgets.QVBoxLayout(monContent)

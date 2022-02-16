@@ -90,8 +90,8 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
     def buffer(self):
         cb = QtWidgets.QComboBox()
         cb.addItem("Off")
-        cb.addItem("On")
-        cb.setToolTip("Turn the LArASIC buffer on or off")
+        cb.addItem("Differential On")
+        cb.setToolTip("Turn the LArASIC differential buffer on or off")
         return cb
         
     def strobe_skip(self):
@@ -145,7 +145,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
                 "Pulse DAC": self.dac,
                 "Leakage Current": self.leakage,
                 "Coupling": self.coupling,
-                "Differential Buffer": self.buffer,
+                "Buffer": self.buffer,
                 "Strobe Skip": self.strobe_skip,
                 "Strobe Delay": self.strobe_delay,
                 "Strobe Length": self.strobe_length

@@ -19,6 +19,7 @@ from wib_buttons3 import WIBButtons3
 from wib_buttons4 import WIBButtons4
 from wib_buttons5 import WIBButtons5
 from wib_buttons6 import WIBButtons6
+from wib_buttons7 import WIBButtons7
 
 from wib import WIB
 import wib_pb2 as wibpb
@@ -127,6 +128,13 @@ class WIBMain(QtWidgets.QMainWindow):
         femb_buttons_tab.layout.addWidget(buttons4)
         self.wib_modules.append(buttons4)
         right_tabs.addTab(femb_buttons_tab,"FEMB Control")
+
+        channel_buttons_tab = QtWidgets.QWidget()
+        channel_buttons_tab.layout = QtWidgets.QVBoxLayout(channel_buttons_tab)
+        buttons7 = WIBButtons7(self.wib, self.gui_print)
+        channel_buttons_tab.layout.addWidget(buttons7)
+        self.wib_modules.append(buttons7)
+        right_tabs.addTab(channel_buttons_tab,"Channel Control")
 
         power_buttons_tab = QtWidgets.QWidget()
         power_buttons_tab.layout = QtWidgets.QVBoxLayout(power_buttons_tab)
