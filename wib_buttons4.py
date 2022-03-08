@@ -145,7 +145,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
                 "Pulse DAC": self.dac,
                 "Leakage Current": self.leakage,
                 "Coupling": self.coupling,
-                "Buffer": self.buffer,
+                "Differential Buffer": self.buffer,
                 "Strobe Skip": self.strobe_skip,
                 "Strobe Delay": self.strobe_delay,
                 "Strobe Length": self.strobe_length
@@ -232,7 +232,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button = QtWidgets.QPushButton('Send')
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
-        button_grid.addWidget(send_button, offset+4, 1, 1, 4)
+        button_grid.addWidget(send_button, offset+4, 1)
     def sendFEMB(self):
         req = wibpb.ConfigureWIB()
         for i in range(self.fembs):

@@ -17,6 +17,8 @@ class WIB:
         cmd.cmd.Pack(req)
         if (type(req) == type(wibpb.PowerWIB())):
             self.socket.setsockopt(zmq.RCVTIMEO, 60000) # milliseconds
+        elif (type(req) == type(wibpb.Script())):
+            self.socket.setsockopt(zmq.RCVTIMEO, 10000) # milliseconds
         else:
             self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         try:

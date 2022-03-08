@@ -109,13 +109,13 @@ class WIBPowerConfButtons(QtWidgets.QGroupBox):
 
         write_button = QtWidgets.QPushButton('Write')
         write_button.setToolTip('Write the new regulator voltage outputs to the WIB. Will turn off the FEMBS!')
-        write_button.clicked.connect(lambda: self.femb_conf_write())
+        write_button.clicked.connect(lambda: self.send_power_config())
 
         button_grid.addWidget(write_button, 12, 0, 1, 2)
         
         self.setLayout(button_grid)
         
-    def coldata_poke(self):
+    def send_power_config(self):
         req = wibpb.ConfigurePower()
         rep = wibpb.Status()
         req.dc2dc_o1 = self.dc1_box.value()
