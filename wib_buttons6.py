@@ -47,7 +47,7 @@ class WIBFast(QtWidgets.QGroupBox):
         req.cmd = self.command_dict[index]
         rep = wibpb.Empty()
         self.parent.wib.send_command(req,rep)
-        print('Fast command sent')
+        self.parent.print_gui(f"Fast command {self.cb.currentText()} sent")
         
 class WIBButtons6(QtWidgets.QWidget):
     def __init__(self, wib, print_function):

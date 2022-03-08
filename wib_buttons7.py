@@ -229,7 +229,19 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         coldata = self.asic // 4
         chip_num = self.asic % 4
         command = f"cd-i2c {self.femb} {coldata} {2} {chip_num} {0x80 + ch} {self.getChannelVal(ch)}\n"
-        command_bytes = bytearray(command, 'utf-8')
+        command_bytes = bytes(command, 'utf-8')
+        return_string = command_bytes.decode('utf-8')
+        self.parent.print_gui(f"Sending command\n{return_string}")
+
+        req = wibpb.Script()
+        req.script = command_bytes
+        rep = wibpb.Status()
+        if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Success:{rep.success}")
+            
+        #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L214
+        command = f"cd-i2c {self.femb} {coldata} {2} {0} {0x20} {0x08}\n"
+        command_bytes = bytes(command, 'utf-8')
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
 
