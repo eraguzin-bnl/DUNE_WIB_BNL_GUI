@@ -98,7 +98,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             button_grid.addWidget(ch_button, 1+i, 0)
             for j,(k,v) in enumerate(self.ch_settings.items()):
                 widget = v()
-                widget.setObjectName(f"{k}{i}")
+                widget.setObjectName(f"{k}{self.femb}{self.asic}{i}")
+                print(f"{k}{self.femb}{self.asic}{i}")
                 widget.setParent(self.parent)
                 button_grid.addWidget(widget, 1+i, 1+j)
         self.setLayout(button_grid)
@@ -207,19 +208,38 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         all_button.setToolTip('Send these values to the WIB')
         all_button.clicked.connect(lambda: self.sendAll())
         button_grid.addWidget(all_button, offset+7, 1, 1, 4)
+        
+        test_button = QtWidgets.QPushButton('Pulser')
+        test_button.setToolTip('Turn the pulser on and off')
+        test_button.clicked.connect(lambda: self.pulse())
+        button_grid.addWidget(test_button, offset+8, 1, 1, 4)
+        
+        self.pulse_status = False
+        
+    def pulse(self):
+        command_bytes = bytearray(f"cd-i2c {0} {1} {2} {0} {20} {1}\n", 'utf-8')
+        #command_bytes.extend(f"cd-i2c {1} {1} {2} {0} {20} {1}\n".encode())
+        #command_bytes.extend(f"cd-i2c {2} {1} {2} {0} {20} {1}\n".encode())
+        #command_bytes.extend(f"cd-i2c {3} {1} {2} {0} {20} {1}\n".encode())
+        #command_bytes.extend(b"fast edge_act")
+        req = wibpb.Script()
+        req.script = bytes(command_bytes)
+        rep = wibpb.Status()
+        if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Success:{rep.success}")
 
     def getChannelVal(self, ch):
-        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{ch}")
+        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{self.femb}{self.asic}{ch}")
         test_cap = 1 if (test_cap_box.currentIndex() == 0) else 0
-        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{self.femb}{self.asic}{ch}")
         baseline = baseline_box.currentIndex()
-        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Monitor{self.femb}{self.asic}{ch}")
         monitor = monitor_box.currentIndex()
-        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Buffer{self.femb}{self.asic}{ch}")
         buffer_val = buffer_box.currentIndex()
-        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{ch}")
+        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{self.femb}{self.asic}{ch}")
         gain = self.gain_dict[gain_box.currentIndex()]
-        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{ch}")
+        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{self.femb}{self.asic}{ch}")
         peak_time = self.pulse_dict[peak_box.currentIndex()]
 
         channel_val = (test_cap << 0) + (baseline << 1) + (gain << 2) + (peak_time << 4) + (monitor << 6) + (buffer_val << 7)
@@ -227,8 +247,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
     def sendChannel(self, ch):
         coldata = self.asic // 4
-        chip_num = self.asic % 4
-        command = f"cd-i2c {self.femb} {coldata} {2} {chip_num} {0x80 + ch} {self.getChannelVal(ch)}\n"
+        chip_num = (self.asic % 4)+1
+        command = f"cd-i2c {self.femb} {coldata} {2} {chip_num} {80 + ch} {self.getChannelVal(ch):00X}\n"
         command_bytes = bytes(command, 'utf-8')
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
@@ -240,16 +260,23 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             self.parent.print_gui(f"Success:{rep.success}")
             
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L214
-        command = f"cd-i2c {self.femb} {coldata} {2} {0} {0x20} {0x08}\n"
-        command_bytes = bytes(command, 'utf-8')
+        command = f"cd-i2c {self.femb} {coldata} {2} {0} {20} {8}\n"
+        command_bytes = bytearray(command, 'utf-8')
+        #command_bytes.extend(b"fast edge_act")
         return_string = command_bytes.decode('utf-8')
-        self.parent.print_gui(f"Sending command\n{return_string}")
+        self.parent.print_gui(f"Sending command2\n{return_string}")
 
         req = wibpb.Script()
-        req.script = command_bytes
+        req.script = bytes(command_bytes)
         rep = wibpb.Status()
         if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.parent.print_gui(f"Success:{rep.success}")
+            self.parent.print_gui(f"Success2:{rep.success}")
+            
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command 'act' sent")
 
     def getGlobalVal(self):
         match_val = self.match_cb.currentIndex()
@@ -271,11 +298,12 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
     def sendGlobal(self):
         glo1, glo2 = self.getGlobalVal()
-        chip_num = self.asic % 4
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x90} {glo1}\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x91} {glo2}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x90} {glo1}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x91} {glo2}\n".encode())
+        coldata = self.asic // 4
+        chip_num = (self.asic % 4) + 1
+        command_bytes = bytearray(f"cd-i2c {self.femb} {coldata} {2} {chip_num} {90} {glo1:00X}\n", 'utf-8')
+        command_bytes.extend(f"cd-i2c {self.femb} {coldata} {2} {chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {coldata} {2} {chip_num} {90} {glo1:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {coldata} {2} {chip_num} {91} {glo2:00X}\n".encode())
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
 
@@ -284,6 +312,23 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         rep = wibpb.Status()
         if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
             self.parent.print_gui(f"Success:{rep.success}")
+            
+        command_bytes = bytearray(f"cd-i2c {self.femb} {coldata} {2} {0} {20} {8}\n", 'utf-8')
+        #command_bytes.extend(b"fast edge_act")
+        return_string = command_bytes.decode('utf-8')
+        self.parent.print_gui(f"Sending command3\n{return_string}")
+
+        req = wibpb.Script()
+        req.script = bytes(command_bytes)
+        rep = wibpb.Status()
+        if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Success3:{rep.success}")
+            
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command 'act' sent")
 
     def sendAll(self):
         glo1, glo2 = self.getGlobalVal()
