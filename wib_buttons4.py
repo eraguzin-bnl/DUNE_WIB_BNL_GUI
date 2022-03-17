@@ -134,8 +134,10 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         self.fembs = 4
         self.first_run = True
         #Remap these settings to the actual chip settings
-        self.gain_dict = {0:3, 1:1, 2:0, 3:2}
-        self.pulse_dict = {0:2, 1:0, 2:3, 3:1}
+        #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L191
+        #Don't know why gain dict breaks the rules
+        self.gain_dict = {0:0, 1:1, 2:2, 3:3}
+        self.pulse_dict = {0:1, 1:0, 2:3, 3:2}
         self.femb_settings = {
                 "Enable": self.enabled,
                 "Test Cap": self.testcap,
@@ -283,13 +285,15 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         self.parent.print_gui('Sending ConfigureWIB command')
         rep = wibpb.Status()
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.change_pulser_status(req.pulser)
             self.parent.print_gui(f"Success:{rep.success}")
         
 class WIBButtons4(QtWidgets.QWidget):
-    def __init__(self, wib, print_function):
+    def __init__(self, wib, print_function, pulser_status):
         QtWidgets.QWidget.__init__(self)
         self.wib = wib
         self.print_gui = print_function
+        self.change_pulser_status = pulser_status
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         layout.addWidget(FEMBControlButtons(self))
