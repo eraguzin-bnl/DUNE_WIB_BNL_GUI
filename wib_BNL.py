@@ -118,7 +118,7 @@ class WIBMain(QtWidgets.QMainWindow):
         left_tabs.addTab(scope_tab,"WIB Oscilloscope")
         femb_tab = QtWidgets.QWidget()
         femb_tab.layout = QtWidgets.QVBoxLayout(femb_tab)
-        femb_diagnostics = FEMBDiagnostics(self.wib)
+        femb_diagnostics = FEMBDiagnostics(self.wib, self.gui_print, self.get_femb_on)
         self.wib_modules.append(femb_diagnostics)
         femb_tab.layout.addWidget(femb_diagnostics)
         left_tabs.addTab(femb_tab,"FEMB Diagnostics")
