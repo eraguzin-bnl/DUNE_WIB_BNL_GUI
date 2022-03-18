@@ -39,7 +39,11 @@ class WIBMain(QtWidgets.QMainWindow):
         self.parse_config(config_path)
         self.wib = WIB(self.wib_address)
         self.wib_modules = []
+        #If the pulser is on or not, so multiple areas of GUI can make decisions based on that
         self.pulser = False
+        #Global setting for if certain FEMBs are initiated, so that the acquire_data() method knows which buffers to request
+        self.buf0_status = False
+        self.buf1_status = False
         #Main Widget that encompasses everything, everything flows vertically from here
         _main = QtWidgets.QWidget()
         _main.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -108,7 +112,7 @@ class WIBMain(QtWidgets.QMainWindow):
         left_tabs.addTab(power_tab,"Power Monitoring")
         scope_tab = QtWidgets.QWidget()
         scope_tab.layout = QtWidgets.QVBoxLayout(scope_tab)
-        wib_scope = WIBScope(self.wib)
+        wib_scope = WIBScope(self.wib, self.gui_print, self.get_femb_on)
         self.wib_modules.append(wib_scope)
         scope_tab.layout.addWidget(wib_scope)
         left_tabs.addTab(scope_tab,"WIB Oscilloscope")
@@ -123,7 +127,7 @@ class WIBMain(QtWidgets.QMainWindow):
         
         wib_buttons_tab = QtWidgets.QWidget()
         wib_buttons_tab.layout = QtWidgets.QVBoxLayout(wib_buttons_tab)
-        buttons1 = WIBButtons1(self.wib, self.gui_print)
+        buttons1 = WIBButtons1(self.wib, self.gui_print, self.set_femb_on)
         wib_buttons_tab.layout.addWidget(buttons1)
         self.wib_modules.append(buttons1)
         buttons2 = WIBButtons2(self.wib, self.gui_print)
@@ -259,6 +263,17 @@ class WIBMain(QtWidgets.QMainWindow):
             
     def get_pulser_status(self):
         return self.pulser
+    
+    #Once buffers are on, there's no way that they'll return 0 samples, even if you turn the FEMB off after
+    #So there's no need to set them false again
+    def set_femb_on(self, femb):
+        if (femb//2):
+            self.buf1_status = True
+        else:
+            self.buf0_status = True
+            
+    def get_femb_on(self):
+        return self.buf0_status, self.buf1_status
 
 #PyQT needs a separate class to be the validator
 class ValidIP(QtGui.QValidator):

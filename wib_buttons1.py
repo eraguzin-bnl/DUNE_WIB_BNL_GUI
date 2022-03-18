@@ -82,12 +82,22 @@ class PowerButtons(QtWidgets.QGroupBox):
         if not self.parent.wib.send_command(req,rep, self.parent.print_gui):
             self.parent.print_gui(rep.extra.decode('ascii'))
             self.parent.print_gui(f"Successful:{rep.success}")
+            if (rep.success):
+                if (req.femb0):
+                    self.parent.set_femb(0)
+                if (req.femb1):
+                    self.parent.set_femb(1)
+                if (req.femb2):
+                    self.parent.set_femb(2)
+                if (req.femb3):
+                    self.parent.set_femb(3)
 
 class WIBButtons1(QtWidgets.QWidget):
-    def __init__(self, wib, print_function):
+    def __init__(self, wib, print_function, set_femb):
         QtWidgets.QWidget.__init__(self)
         self.wib = wib
         self.print_gui = print_function
+        self.set_femb = set_femb
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         

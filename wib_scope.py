@@ -327,11 +327,13 @@ class SignalView(QtWidgets.QWidget):
         self.resize(None)
 
 class WIBScope(QtWidgets.QWidget):
-    def __init__(self, wib):
+    def __init__(self, wib, print_gui, femb_status):
         QtWidgets.QWidget.__init__(self)
         self.samples = None
         self.timestamps = None
         self.wib = wib
+        self.print_gui = print_gui
+        self.get_femb_status = femb_status
         #self._main = QtWidgets.QWidget()
         #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setCentralWidget(self._main)
@@ -472,7 +474,11 @@ class WIBScope(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def acquire_data(self):
-        self.timestamps,self.samples = self.wib.acquire_data(buf1 = False, ignore_failure=True)
+        buf0, buf1 = self.get_femb_status()
+        if (buf0 == 0) and (buf1 == 0):
+            self.print_gui("No FEMBs have been initiated! Can't get buffer data!")
+            return
+        self.timestamps,self.samples = self.wib.acquire_data(buf0 = buf0, buf1 = buf1, ignore_failure=True)
         
         for view in self.views:
             view.load_data()
