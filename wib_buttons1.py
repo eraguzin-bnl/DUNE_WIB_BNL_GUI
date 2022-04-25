@@ -51,9 +51,12 @@ class PowerButtons(QtWidgets.QGroupBox):
         power_button = QtWidgets.QPushButton('Power On/Connect')
         power_button.setToolTip('Initial connection and power on with the WIB')
         power_button.clicked.connect(self.power_on)
+        
+
         button_grid.addWidget(power_button, 0, 0)
         
         self.setLayout(button_grid)
+
         
     def get_sequence_box(self):
         return self.power_sequence_box.currentIndex()
@@ -83,6 +86,7 @@ class PowerButtons(QtWidgets.QGroupBox):
             self.parent.print_gui(rep.extra.decode('ascii'))
             self.parent.print_gui(f"Successful:{rep.success}")
 
+
 class WIBButtons1(QtWidgets.QWidget):
     def __init__(self, wib, print_function):
         QtWidgets.QWidget.__init__(self)
@@ -91,6 +95,6 @@ class WIBButtons1(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
         
-        power_gb = PowerButtons(self)
+        self.power_gb = PowerButtons(self)
         
-        layout.addWidget(power_gb)
+        layout.addWidget(self.power_gb)

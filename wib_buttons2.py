@@ -165,5 +165,5 @@ class WIBButtons2(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        wib_client_buttons = WIBClientButtons(self)
-        layout.addWidget(wib_client_buttons)
+        self.wib_client_buttons = WIBClientButtons(self)
+        layout.addWidget(self.wib_client_buttons)

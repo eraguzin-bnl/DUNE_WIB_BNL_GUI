@@ -20,11 +20,32 @@ except:
 #Looking at how it's done here:
 #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/04440d52f629d8c3e5948fe29616b5b98ff90748/sw/src/femb_3asic.cc#L210
 #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/04440d52f629d8c3e5948fe29616b5b98ff90748/sw/src/wib_3asic.cc#L348
-class ChannelControlButtons(QtWidgets.QGroupBox):
+class ChannelControlButtons(QtWidgets.QGroupBox):                
+    
     def testcap(self):
         cb = QtWidgets.QComboBox()
         cb.addItem("On")
         cb.addItem("Off")
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
+
+        def setall():
+            if (cb.objectName()[0:10] == "Test Cap17" and len(cb.objectName()) > 11):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Test Cap" + str(i) + cb.objectName()[10:12])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+        
         cb.setToolTip("Turn on the test capacitor in the LArASIC chips to allow test pulses")
         return cb
     
@@ -34,6 +55,31 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb.addItem("7.8 mV/fC")
         cb.addItem("14 mV/fC")
         cb.addItem("25 mV/fC")
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: black;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: black;" "}")
+            elif cb.currentIndex() == 1:
+                cb.setStyleSheet("QComboBox" "{" "background-color: darkorchid;" "}")
+            elif cb.currentIndex() == 2:
+                cb.setStyleSheet("QComboBox" "{" "background-color: orange;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: midnightblue;" "}")
+
+        def setall():
+            if (cb.objectName()[0:6] == "Gain17" and len(cb.objectName()) > 7):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Gain" + str(i) + cb.objectName()[6:8])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+
+        
         cb.setToolTip("Set the gain of the LArASIC channel")
         return cb
         
@@ -43,6 +89,30 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb.addItem("1 us")
         cb.addItem("2 us")
         cb.addItem("3 us")
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: mediumvioletred;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: mediumvioletred;" "}")
+            elif cb.currentIndex() == 1:
+                cb.setStyleSheet("QComboBox" "{" "background-color: olivedrab;" "}")
+            elif cb.currentIndex() == 2:
+                cb.setStyleSheet("QComboBox" "{" "background-color: salmon;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: steelblue;" "}")
+
+        def setall():
+            if (cb.objectName()[0:14] == "Peaking Time17" and len(cb.objectName()) > 15):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Peaking Time" + str(i) + cb.objectName()[14:16])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+        
         return cb
         
     def baseline(self):
@@ -50,6 +120,27 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb.addItem("900 mV")
         cb.addItem("200 mV")
         cb.setCurrentIndex(1)
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: saddlebrown;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: teal;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: saddlebrown;" "}")
+
+
+        def setall():
+            if (cb.objectName()[0:10] == "Baseline17" and len(cb.objectName()) > 11):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Baseline" + str(i) + cb.objectName()[10:12])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+        
         cb.setToolTip("Set the baseline of the LArASIC channel")
         return cb
 
@@ -57,6 +148,28 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb = QtWidgets.QComboBox()
         cb.addItem("Off")
         cb.addItem("On")
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
+
+        def setall():
+            if (cb.objectName()[0:9] == "Monitor17" and len(cb.objectName()) > 10):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Monitor" + str(i) + cb.objectName()[9:11])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+
+
+        
         cb.setToolTip("Set whether to connect this channel to the monitor output")
         return cb
 
@@ -64,6 +177,27 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb = QtWidgets.QComboBox()
         cb.addItem("Off")
         cb.addItem("Single On")
+
+        cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
+
+        def combo_changed():
+            if cb.currentIndex() == 0:
+                cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
+            else :
+                cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
+
+
+        def setall():
+            if (cb.objectName()[0:8] == "Buffer17" and len(cb.objectName()) > 9):
+                for i in range(0, 17):
+                    cbox = self.parent.findChild(QtWidgets.QComboBox, "Buffer" + str(i) + cb.objectName()[8:10])
+                    cbox.setCurrentIndex(cb.currentIndex())
+
+                    
+                    
+        cb.currentIndexChanged.connect(combo_changed)       
+        cb.currentIndexChanged.connect(setall)
+
         cb.setToolTip("Turn this channe's single ended buffer on or off\nNote: Is overridden if the global differential buffer is on")
         return cb
         
@@ -91,19 +225,27 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             label = QtWidgets.QLabel(k)
             button_grid.addWidget(label, 0, 1+i)
             
-        for i in range(self.channels):
-            ch_button = QtWidgets.QPushButton(f"Ch {i}")
+        for i in range(self.channels + 2):
+            if (i == 17):
+                ch_button = QtWidgets.QPushButton(f"Set all")
+            else:
+                ch_button = QtWidgets.QPushButton(f"Ch {i}")
             ch_button.setToolTip(f"Write channel {i} settings")
             ch_button.clicked.connect(partial(self.sendChannel, i))
             button_grid.addWidget(ch_button, 1+i, 0)
             for j,(k,v) in enumerate(self.ch_settings.items()):
                 widget = v()
-                widget.setObjectName(f"{k}{i}")
+                widget.setObjectName(f"{k}{i}{self.asic}{self.femb}")
                 widget.setParent(self.parent)
                 button_grid.addWidget(widget, 1+i, 1+j)
-        self.setLayout(button_grid)
 
-        offset = self.channels + 1
+            
+        def temp():
+            print(self.parent.findChild(QtWidgets.QComboBox, "Monitor1").itemData(self.parent.findChild(QtWidgets.QComboBox, "Monitor1").currentIndex()))
+        self.setLayout(button_grid)
+        #self.parent.findChild(QtWidgets.QComboBox, "Monitor1").currentIndexChanged.connect(temp)
+
+        offset = self.channels + 2
         settings_label = QtWidgets.QLabel("Global LArASIC Settings")
         settings_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         button_grid.addWidget(settings_label, offset+1, 1, 1, 6)
@@ -315,7 +457,7 @@ class ChannelPane(QtWidgets.QMainWindow):
         _main.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setCentralWidget(_main)
         layout = QtWidgets.QVBoxLayout(_main)
-
+        self.channelButtons = []
         self.FEMBs = 4
         self.ASICs = 8
         wib_function_layout = QtWidgets.QHBoxLayout()
@@ -323,10 +465,12 @@ class ChannelPane(QtWidgets.QMainWindow):
         for i in range(self.FEMBs):
             asic_tabs = QtWidgets.QTabWidget()
             for j in range(self.ASICs):
-                asic = ChannelControlButtons(self, i, j)
+                self.asic = ChannelControlButtons(self, i, j)
+                self.asic.setObjectName(f"{i}{j}")
+                self.channelButtons.append(self.asic)
                 asic_widget = QtWidgets.QWidget()
                 asic_widget.layout = QtWidgets.QVBoxLayout(asic_widget)
-                asic_widget.layout.addWidget(asic)
+                asic_widget.layout.addWidget(self.asic)
                 asic_tabs.addTab(asic_widget,f"ASIC{j}")
 
             femb_widget = QtWidgets.QWidget()
@@ -354,5 +498,6 @@ class WIBButtons7(QtWidgets.QMainWindow):
 
         ChLayout = QtWidgets.QVBoxLayout(ChContent)
         ChContent.setLayout(ChLayout)
-        ChLayout.addWidget(ChannelPane(self))
+        self.channelPane = ChannelPane(self)
+        ChLayout.addWidget(self.channelPane)
         self._main.setWidget(ChContent)

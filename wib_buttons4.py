@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from json import load
 import os
 import sys
 import time
@@ -10,6 +11,7 @@ from collections import deque
 
 from wib import WIB
 import wib_pb2 as wibpb
+import json
 
 try:
     from matplotlib.backends.qt_compat import QtCore, QtWidgets, QtGui
@@ -233,6 +235,147 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
         button_grid.addWidget(send_button, offset+4, 1)
+
+
+        load_button = QtWidgets.QPushButton('Load Config')
+        load_button.setToolTip('Load configuration values from JSON file')
+        load_button.clicked.connect(lambda: self.load())
+        button_grid.addWidget(load_button, offset+4, 3)
+
+        save_button = QtWidgets.QPushButton('Save Config')
+        save_button.setToolTip('Save configuration values to JSON file')
+        save_button.clicked.connect(lambda: self.save())
+        button_grid.addWidget(save_button, offset+4, 4)
+        self.settings_cb = {"Test Cap":"test_cap", "Gain":"gain" , "Peaking Time": "peak_time", "Baseline": "baseline",
+             "Leakage Current": "leak", "Coupling": "ac_couple", "Differential Buffer": "buffer"}
+        self.settings_sb = {"Pulse DAC": "pulse_dac", "Strobe Skip": "strobe_skip", "Strobe Delay": "strobe_delay", "Strobe Length": "strobe_length" }
+
+
+    def save(self):
+        self.saveDict = { "cold": bool(self.temp_box.currentIndex()),
+                          "pulser": False if self.pulser_box.currentIndex() == 1 else True,
+                          "enabled_fembs": [bool(self.parent.findChild(QtWidgets.QComboBox, f"Enable{i}").currentIndex()) for i in range(4)],
+                          "femb_configs": [ { "test_cap": False if self.parent.findChild(QtWidgets.QComboBox, "Test Cap0").currentIndex() == 1 else True,
+                                              "gain": self.parent.findChild(QtWidgets.QComboBox, "Gain0").currentIndex(),
+                                              "peak_time": self.parent.findChild(QtWidgets.QComboBox, "Peaking Time0").currentIndex(),
+                                              "baseline": self.parent.findChild(QtWidgets.QComboBox, "Baseline0").currentIndex(),
+                                              "pulse_dac": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Pulse DAC0").value())),
+                                              "leak": self.parent.findChild(QtWidgets.QComboBox, "Leakage Current0").currentIndex(),
+                                              "leak_10x": False,
+                                              "ac_couple": False if self.parent.findChild(QtWidgets.QComboBox, "Coupling0").currentIndex() == 1 else True,
+                                              "buffer": self.parent.findChild(QtWidgets.QComboBox, "Differential Buffer0").currentIndex(),
+                                              "strobe_skip": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Skip0").value())),
+                                              "strobe_delay": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Delay0").value())),
+                                              "strobe_length": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Length0").value()))
+                                            },
+                                            { "test_cap": False if self.parent.findChild(QtWidgets.QComboBox, "Test Cap1").currentIndex() == 1 else True,
+                                              "gain": self.parent.findChild(QtWidgets.QComboBox, "Gain1").currentIndex(),
+                                              "peak_time": self.parent.findChild(QtWidgets.QComboBox, "Peaking Time1").currentIndex(),
+                                              "baseline": self.parent.findChild(QtWidgets.QComboBox, "Baseline1").currentIndex(),
+                                              "pulse_dac": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Pulse DAC1").value())),
+                                              "leak": self.parent.findChild(QtWidgets.QComboBox, "Leakage Current1").currentIndex(),
+                                              "leak_10x": False,
+                                              "ac_couple": False if self.parent.findChild(QtWidgets.QComboBox, "Coupling1").currentIndex() == 1 else True,
+                                              "buffer": self.parent.findChild(QtWidgets.QComboBox, "Differential Buffer1").currentIndex(),
+                                              "strobe_skip": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Skip1").value())),
+                                              "strobe_delay": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Delay1").value())),
+                                              "strobe_length": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Length1").value()))
+                                            },
+                                            { "test_cap": False if self.parent.findChild(QtWidgets.QComboBox, "Test Cap2").currentIndex() == 1 else True,
+                                              "gain": self.parent.findChild(QtWidgets.QComboBox, "Gain2").currentIndex(),
+                                              "peak_time": self.parent.findChild(QtWidgets.QComboBox, "Peaking Time2").currentIndex(),
+                                              "baseline": self.parent.findChild(QtWidgets.QComboBox, "Baseline2").currentIndex(),
+                                              "pulse_dac": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Pulse DAC2").value())),
+                                              "leak": self.parent.findChild(QtWidgets.QComboBox, "Leakage Current2").currentIndex(),
+                                              "leak_10x": False,
+                                              "ac_couple": False if self.parent.findChild(QtWidgets.QComboBox, "Coupling2").currentIndex() == 1 else True,
+                                              "buffer": self.parent.findChild(QtWidgets.QComboBox, "Differential Buffer2").currentIndex(),
+                                              "strobe_skip": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Skip2").value())),
+                                              "strobe_delay": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Delay2").value())),
+                                              "strobe_length": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Length2").value()))
+                                            },
+                                            { "test_cap": False if self.parent.findChild(QtWidgets.QComboBox, "Test Cap3").currentIndex() == 1 else True,
+                                              "gain": self.parent.findChild(QtWidgets.QComboBox, "Gain3").currentIndex(),
+                                              "peak_time": self.parent.findChild(QtWidgets.QComboBox, "Peaking Time3").currentIndex(),
+                                              "baseline": self.parent.findChild(QtWidgets.QComboBox, "Baseline3").currentIndex(),
+                                              "pulse_dac": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Pulse DAC3").value())),
+                                              "leak": self.parent.findChild(QtWidgets.QComboBox, "Leakage Current3").currentIndex(),
+                                              "leak_10x": False,
+                                              "ac_couple": False if self.parent.findChild(QtWidgets.QComboBox, "Coupling3").currentIndex() == 1 else True,
+                                              "buffer": self.parent.findChild(QtWidgets.QComboBox, "Differential Buffer3").currentIndex(),
+                                              "strobe_skip": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Skip3").value())),
+                                              "strobe_delay": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Delay3").value())),
+                                              "strobe_length": int(str(self.parent.findChild(QtWidgets.QSpinBox, "Strobe Length3").value()))
+                                            }
+
+                          ]
+
+
+        }
+        for i in range(4):
+            indx = self.parent.findChild(QtWidgets.QComboBox, f"Leakage Current{i}").currentIndex()
+            print(indx)
+            if (indx == 2 or indx == 3):
+                print(i, "yes")
+                self.saveDict["femb_configs"][i]["leak_10x"] = True
+                self.saveDict["femb_configs"][i]["leak"] = indx - 2
+        fileWrite = self.saveFileDialog()
+        if (fileWrite != "Cancel"):
+            with open(fileWrite, 'w') as file:
+                json.dump(self.saveDict, file)
+
+    def load(self):
+        fileLoader = self.openFileNameDialog()
+        if (fileLoader != "Cancel"):
+            with open(fileLoader, 'r') as file:
+                self.config = json.load(file)
+
+            self.temp_box.setCurrentIndex(self.config["cold"])
+            if (self.config["pulser"] == False):
+                self.pulser_box.setCurrentIndex(1)
+            else:
+                self.pulser_box.setCurrentIndex(0)
+            for i in range(4):
+                self.parent.findChild(QtWidgets.QComboBox, f"Enable{i}").setCurrentIndex(self.config["enabled_fembs"][i])
+            for key,value in self.settings_sb.items():
+                for i in range(4):
+                    self.parent.findChild(QtWidgets.QSpinBox, f"{key}{i}").setValue(int(hex(self.config["femb_configs"][i][value]), 16))
+            for key,value in self.settings_cb.items():
+                for i in range(4):
+                    if ((key == "Test Cap" or key == "Coupling") and self.config["femb_configs"][i][value] == False):
+                        self.parent.findChild(QtWidgets.QComboBox, f"{key}{i}").setCurrentIndex(1)
+                    elif ((key == "Test Cap" or key == "Coupling") and self.config["femb_configs"][i][value] == True):
+                        self.parent.findChild(QtWidgets.QComboBox, f"{key}{i}").setCurrentIndex(0)
+                    elif (key == "Leakage Current"):
+                        if (self.config["femb_configs"][i]["leak_10x"] == True):
+                            self.parent.findChild(QtWidgets.QComboBox, f"{key}{i}").setCurrentIndex(self.config["femb_configs"][i][value]+2)
+                        else:
+                            self.parent.findChild(QtWidgets.QComboBox, f"{key}{i}").setCurrentIndex(self.config["femb_configs"][i][value])
+                    else:
+                        self.parent.findChild(QtWidgets.QComboBox, f"{key}{i}").setCurrentIndex(self.config["femb_configs"][i][value])
+            
+            
+            
+
+    def openFileNameDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","JSON Files (*.json)", options=options)
+        if fileName:
+            return fileName
+        else:
+            return "Cancel"
+
+    def saveFileDialog(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","JSON Files (*.json)", options=options)
+        if fileName:
+            return fileName
+        else:
+            return "Cancel"
+
+
     def sendFEMB(self):
         req = wibpb.ConfigureWIB()
         for i in range(self.fembs):
@@ -292,4 +435,5 @@ class WIBButtons4(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        layout.addWidget(FEMBControlButtons(self))
+        self.fembcontrol = FEMBControlButtons(self)
+        layout.addWidget(self.fembcontrol)

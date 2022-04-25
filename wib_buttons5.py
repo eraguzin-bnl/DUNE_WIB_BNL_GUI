@@ -134,4 +134,5 @@ class WIBButtons5(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        layout.addWidget(WIBPowerConfButtons(self))
+        self.powerconf = WIBPowerConfButtons(self)
+        layout.addWidget(self.powerconf)
