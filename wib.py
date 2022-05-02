@@ -19,6 +19,8 @@ class WIB:
             self.socket.setsockopt(zmq.RCVTIMEO, 60000) # milliseconds
         elif (type(req) == type(wibpb.Script())):
             self.socket.setsockopt(zmq.RCVTIMEO, 10000) # milliseconds
+        elif (type(req) == type(wibpb.Calibrate())):
+            self.socket.setsockopt(zmq.RCVTIMEO, 20000) # milliseconds
         else:
             self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         try:

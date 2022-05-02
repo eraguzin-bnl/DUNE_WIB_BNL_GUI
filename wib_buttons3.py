@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 
 import os
 import sys
@@ -176,10 +176,12 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             
             read_button.clicked.connect(lambda: self.coldata_peek(int(self.femb_box.value()),
                                                                   int(self.coldata_box.value()),
+                                                                  int(self.chip_addr_box.value()),
                                                                   int(self.page_box.value()),
                                                                   int(self.reg_box.value())))
             write_button.clicked.connect(lambda: self.coldata_poke(int(self.femb_box.value()),
                                                                   int(self.coldata_box.value()),
+                                                                  int(self.chip_addr_box.value()),
                                                                   int(self.page_box.value()),
                                                                   int(self.reg_box.value()),
                                                                   int(self.val_box.value())))
@@ -189,7 +191,31 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         button_grid.addWidget(reading_label, 5, 5)
         button_grid.addWidget(self.result, 6, 5)
         
+        #spi_button = QtWidgets.QPushButton('Write SPI')
+        #spi_button.setToolTip('Write the SPI and read it back')
+        #spi_button.clicked.connect(lambda: self.spi_read())
+        #button_grid.addWidget(spi_button, 7, 2)
+        
         self.setLayout(button_grid)
+        
+    def spi_read(self):
+        self.coldata_poke(0, 0, 2, 0, 0x20, 8)
+        
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command sent")
+        
+        self.coldata_poke(0, 0, 2, 0, 0x20, 3)
+        
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command sent")
+        
+        self.coldata_peek(0, 0, 2, 0, 0x24)
         
     def wib_peek(self, reg):
         req = wibpb.Peek()
@@ -207,11 +233,12 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
             self.parent.print_gui(f"Register 0x{rep.addr:016X} was set to 0x{rep.value:08X}")
         
-    def coldata_peek(self, femb, coldata, page, reg):
+    def coldata_peek(self, femb, coldata, chip_addr, page, reg):
         req = wibpb.CDPeek()
         rep = wibpb.CDRegValue()
         req.femb_idx = femb
         req.coldata_idx = coldata
+        req.chip_addr = chip_addr
         req.reg_page = page
         req.reg_addr = reg
         if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
@@ -220,11 +247,12 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
             self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was read as 0x{rep.data:02X}")
         
-    def coldata_poke(self, femb, coldata, page, reg, data):
+    def coldata_poke(self, femb, coldata, chip_addr, page, reg, data):
         req = wibpb.CDPoke()
         rep = wibpb.CDRegValue()
         req.femb_idx = femb
         req.coldata_idx = coldata
+        req.chip_addr = chip_addr
         req.reg_page = page
         req.reg_addr = reg
         req.data = data

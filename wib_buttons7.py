@@ -208,9 +208,11 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         self.channels = 16
         self.femb = femb
         self.asic = asic
+        self.coldata = (self.asic // 4) + 2 #COLDATA 0 is now 2, and 1 is now 3
+        self.chip_num = (self.asic % 4) + 1
         #Remap these settings to the actual chip settings
-        self.gain_dict = {0:3, 1:1, 2:0, 3:2}
-        self.pulse_dict = {0:2, 1:0, 2:3, 3:1}
+        self.gain_dict = {0:0, 1:1, 2:2, 3:3}
+        self.pulse_dict = {0:1, 1:0, 2:3, 3:2}
         self.monitor_dict = {0:0, 1:1, 2:3}
         self.ch_settings = {
                 "Test Cap": self.testcap,
@@ -321,9 +323,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
         self.pulser_cb = QtWidgets.QComboBox()
         self.pulser_cb.addItem("Disconnected")
-        self.pulser_cb.addItem("Internal")
-        self.pulser_cb.addItem("External")
-        self.pulser_cb.addItem("Measure")
+        self.pulser_cb.addItem("Enable")
         self.pulser_cb.setToolTip("Set the configuration of DAC pulser switches\nThe LArASIC P5A does not have an external option anymore\nDo NOT enable switches while the analog monitors are enabled!")
         button_grid.addWidget(self.pulser_cb, offset+5, 2)
 
@@ -340,58 +340,47 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         self.dac_sb.setToolTip("Internal DAC value for LArASIC test pulses")
         button_grid.addWidget(self.dac_sb, offset+5, 3)
             
-        send_button = QtWidgets.QPushButton('Send global settings only')
+        send_button = QtWidgets.QPushButton("Send this chip's global settings only")
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendGlobal())
         button_grid.addWidget(send_button, offset+6, 1, 1, 4)
 
-        all_button = QtWidgets.QPushButton('Send all channels and global settings')
+        all_button = QtWidgets.QPushButton("Send all this chip's channel and global settings")
         all_button.setToolTip('Send these values to the WIB')
         all_button.clicked.connect(lambda: self.sendAll())
         button_grid.addWidget(all_button, offset+7, 1, 1, 4)
 
     def getChannelVal(self, ch):
-        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{ch}")
+        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{self.femb}{self.asic}{ch}")
         test_cap = 1 if (test_cap_box.currentIndex() == 0) else 0
-        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{self.femb}{self.asic}{ch}")
         baseline = baseline_box.currentIndex()
-        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Monitor{self.femb}{self.asic}{ch}")
         monitor = monitor_box.currentIndex()
-        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}")
+        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Buffer{self.femb}{self.asic}{ch}")
         buffer_val = buffer_box.currentIndex()
-        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{ch}")
+        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{self.femb}{self.asic}{ch}")
         gain = self.gain_dict[gain_box.currentIndex()]
-        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{ch}")
+        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{self.femb}{self.asic}{ch}")
         peak_time = self.pulse_dict[peak_box.currentIndex()]
 
         channel_val = (test_cap << 0) + (baseline << 1) + (gain << 2) + (peak_time << 4) + (monitor << 6) + (buffer_val << 7)
         return (channel_val)
 
     def sendChannel(self, ch):
-        coldata = self.asic // 4
-        chip_num = self.asic % 4
-        command = f"cd-i2c {self.femb} {coldata} {2} {chip_num} {0x80 + ch} {self.getChannelVal(ch)}\n"
-        command_bytes = bytes(command, 'utf-8')
-        return_string = command_bytes.decode('utf-8')
-        self.parent.print_gui(f"Sending command\n{return_string}")
-
-        req = wibpb.Script()
-        req.script = command_bytes
-        rep = wibpb.Status()
-        if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.parent.print_gui(f"Success:{rep.success}")
-            
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L214
-        command = f"cd-i2c {self.femb} {coldata} {2} {0} {0x20} {0x08}\n"
-        command_bytes = bytes(command, 'utf-8')
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - ch):00X}\
+            {self.getChannelVal(ch):00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
 
         req = wibpb.Script()
-        req.script = command_bytes
+        req.script = bytes(command_bytes)
         rep = wibpb.Status()
         if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.parent.print_gui(f"Success:{rep.success}")
+            self.parent.print_gui(f"Write Channel result:{rep.success}")
+            self.writeLarasic()
 
     def getGlobalVal(self):
         match_val = self.match_cb.currentIndex()
@@ -402,7 +391,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         leak_10x = (leak_box_val//2 == 1)
         filter_val = self.filter_cb.currentIndex()
         monitor_val = self.monitor_dict[self.monitor_cb.currentIndex()]
-        dac_switch = self.pulser_cb.currentIndex()
+        dac_switch = 0 if self.pulser_cb.currentIndex()==0 else 2
         dac_val = int(self.dac_sb.value())
 
         global_reg1 = (match_val << 0) + (buffer_val << 1) + (coupling_val << 2) + (leak_10x << 3) + (filter_val << 4) + (monitor_val << 5) + (leak << 7)
@@ -413,32 +402,29 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
     def sendGlobal(self):
         glo1, glo2 = self.getGlobalVal()
-        chip_num = self.asic % 4
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x90} {glo1}\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x91} {glo2}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x90} {glo1}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x91} {glo2}\n".encode())
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n", 'utf-8')
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
-        self.parent.print_gui(f"Sending command\n{return_string}")
+        #self.parent.print_gui(f"Sending command\n{return_string}")
 
         req = wibpb.Script()
         req.script = bytes(command_bytes)
         rep = wibpb.Status()
         if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.parent.print_gui(f"Success:{rep.success}")
+            self.parent.print_gui(f"Write Global result:{rep.success}")
+            self.writeLarasic()
 
     def sendAll(self):
-        glo1, glo2 = self.getGlobalVal()
-        coldata = self.asic // 4
-        chip_num = self.asic % 4
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x90} {glo1}\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {chip_num} {0x91} {glo2}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x90} {glo1}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {1} {2} {chip_num} {0x91} {glo2}\n".encode())
-
+        command_bytes = bytearray("delay 5\n", 'utf-8')
+        #Channel 0 is internal WIB register 0x8F and channel 15 is 0x80
+        #but you're subtracting it and want the end result to be in hex, so I start it in decimal
         for i in range(self.channels):
-            command_bytes.extend(f"cd-i2c {self.femb} {coldata} {2} {chip_num} {0x80 + i} {self.getChannelVal(i)}\n".encode())
-
+            command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - i):00X}\
+                {self.getChannelVal(i):00X}\n".encode())
+        
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
 
@@ -446,7 +432,31 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         req.script = bytes(command_bytes)
         rep = wibpb.Status()
         if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
-            self.parent.print_gui(f"Success:{rep.success}")
+            self.parent.print_gui(f"Write All Result:{rep.success}")
+            self.sendGlobal()
+            
+    def writeLarasic(self):
+        #Can't write values to LArASIC while pulser is on
+        temp_toggle = False
+        if (self.parent.parent.get_pulser()):
+            self.parent.parent.set_pulser()
+            temp_toggle = True
+            
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n", 'utf-8')
+        req = wibpb.Script()
+        req.script = bytes(command_bytes)
+        rep = wibpb.Status()
+        if not self.parent.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"Write LArASIC results:{rep.success}")
+            
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"LArASIC FEMB{self.femb}, Chip {self.asic} written")
+        
+        if (temp_toggle):
+            self.parent.parent.set_pulser()
 
 class ChannelPane(QtWidgets.QMainWindow):
     def __init__(self,parent):
@@ -482,11 +492,12 @@ class ChannelPane(QtWidgets.QMainWindow):
         layout.addLayout(wib_function_layout)
         
 class WIBButtons7(QtWidgets.QMainWindow):
-    def __init__(self, wib, print_function):
+    def __init__(self, wib, print_function, set_pulser, get_pulser):
         QtWidgets.QWidget.__init__(self)
         self.wib = wib
         self.print_gui = print_function
-
+        self.get_pulser = get_pulser
+        self.set_pulser = set_pulser
         #This method with _main, ChContent and ChLayout allows there to be a horizontal scroll bar
         self._main = QtWidgets.QScrollArea()
         self._main.setWidget(QtWidgets.QWidget())

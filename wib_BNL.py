@@ -41,6 +41,11 @@ class WIBMain(QtWidgets.QMainWindow):
         self.parse_config(config_path)
         self.wib = WIB(self.wib_address)
         self.wib_modules = []
+        #If the pulser is on or not, so multiple areas of GUI can make decisions based on that
+        self.pulser = False
+        #Global setting for if certain FEMBs are initiated, so that the acquire_data() method knows which buffers to request
+        self.buf0_status = False
+        self.buf1_status = False
         #Main Widget that encompasses everything, everything flows vertically from here
         _main = QtWidgets.QWidget()
         _main.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -57,6 +62,19 @@ class WIBMain(QtWidgets.QMainWindow):
         self.wib_ip_input.setValidator(ValidIP(self))
         self.wib_ip_input.editingFinished.connect(self.wib_address_edited)
         self.wib_ip_input.setToolTip("Insert WIB IP Address and push 'enter'")
+        
+        pulser_button = QtWidgets.QPushButton('Toggle Pulser')
+        wib_comm_layout.addWidget(pulser_button)
+        pulser_button.setToolTip('Toggle pulser between "on" and "off". See indicator for current status')
+        pulser_button.clicked.connect(self.toggle_pulser)
+        
+        pulser_label = QtWidgets.QLabel('Pulser Status')
+        wib_comm_layout.addWidget(pulser_label)
+        
+        self.pulser_status = QtWidgets.QLabel("Off")
+        self.pulser_status.setMinimumWidth(30)
+        wib_comm_layout.addWidget(self.pulser_status)
+        self.pulser_status.setToolTip('Current status of the pulser. Can be changed by writing to FEMB or individual chips')
         
         restart_button = QtWidgets.QPushButton('Restart Communication')
         wib_comm_layout.addWidget(restart_button)
@@ -99,13 +117,13 @@ class WIBMain(QtWidgets.QMainWindow):
         left_tabs.addTab(power_tab,"Power Monitoring")
         scope_tab = QtWidgets.QWidget()
         scope_tab.layout = QtWidgets.QVBoxLayout(scope_tab)
-        wib_scope = WIBScope(self.wib)
+        wib_scope = WIBScope(self.wib, self.gui_print, self.get_femb_on)
         self.wib_modules.append(wib_scope)
         scope_tab.layout.addWidget(wib_scope)
         left_tabs.addTab(scope_tab,"WIB Oscilloscope")
         femb_tab = QtWidgets.QWidget()
         femb_tab.layout = QtWidgets.QVBoxLayout(femb_tab)
-        femb_diagnostics = FEMBDiagnostics(self.wib)
+        femb_diagnostics = FEMBDiagnostics(self.wib, self.gui_print, self.get_femb_on)
         self.wib_modules.append(femb_diagnostics)
         femb_tab.layout.addWidget(femb_diagnostics)
         left_tabs.addTab(femb_tab,"FEMB Diagnostics")
@@ -114,17 +132,12 @@ class WIBMain(QtWidgets.QMainWindow):
         
         wib_buttons_tab = QtWidgets.QWidget()
         wib_buttons_tab.layout = QtWidgets.QVBoxLayout(wib_buttons_tab)
-        double_widget_temp = QtWidgets.QWidget()
-        double_widget_temp.layout = QtWidgets.QHBoxLayout(double_widget_temp)
-        self.buttons1 = WIBButtons1(self.wib, self.gui_print)
-        double_widget_temp.layout.addWidget(self.buttons1)
-        wib_buttons_tab.layout.addWidget(double_widget_temp)
+
+        self.buttons1 = WIBButtons1(self.wib, self.gui_print, self.set_femb_on)
+        wib_buttons_tab.layout.addWidget(self.buttons1)
         self.wib_modules.append(self.buttons1)
         self.buttons2 = WIBButtons2(self.wib, self.gui_print)
-        double_widget_temp.layout.addWidget(self.buttons2)
-        wib_buttons_tab.layout.addWidget(double_widget_temp)
-
-        
+        wib_buttons_tab.layout.addWidget(self.buttons2)
         self.wib_modules.append(self.buttons2)
         self.buttons3 = WIBButtons3(self.wib, self.gui_print)
         wib_buttons_tab.layout.addWidget(self.buttons3)
@@ -150,16 +163,19 @@ class WIBMain(QtWidgets.QMainWindow):
         
         femb_buttons_tab = QtWidgets.QWidget()
         femb_buttons_tab.layout = QtWidgets.QVBoxLayout(femb_buttons_tab)
-        self.buttons4 = WIBButtons4(self.wib, self.gui_print)
+        
+        self.buttons4 = WIBButtons4(self.wib, self.gui_print, self.set_pulser_status)
         femb_buttons_tab.layout.addWidget(self.buttons4)
         self.wib_modules.append(self.buttons4)
+      
         right_tabs.addTab(femb_buttons_tab,"FEMB Control")
 
         channel_buttons_tab = QtWidgets.QWidget()
         channel_buttons_tab.layout = QtWidgets.QVBoxLayout(channel_buttons_tab)
-        self.buttons7 = WIBButtons7(self.wib, self.gui_print)
+        self.buttons7 = WIBButtons7(self.wib, self.gui_print, self.toggle_pulser, self.get_pulser_status)
         channel_buttons_tab.layout.addWidget(self.buttons7)
         self.wib_modules.append(self.buttons7)
+      
         right_tabs.addTab(channel_buttons_tab,"Channel Control")
 
         power_buttons_tab = QtWidgets.QWidget()
@@ -461,6 +477,57 @@ class WIBMain(QtWidgets.QMainWindow):
         self.text.append(f"ZeroMQ interface restarted with IP Address of {ip_text_field}")
         for i in self.wib_modules:
             i.wib = self.wib
+            
+    def toggle_pulser(self):
+        command_bytes = bytearray("delay 5\n", 'utf-8')
+        #command_bytes.extend(f"cd-i2c {0} {1} {2} {0} {20} {1}\n".encode())
+        for i in range(4):
+            for j in range(2, 4, 1):
+                command_bytes.extend(f"cd-i2c {i} {0} {j} {0} {20} {1}\n".encode())
+        
+        req = wibpb.Script()
+        req.script = bytes(command_bytes)
+        return_string = bytes(command_bytes).decode('utf-8')
+        #self.gui_print(f"Sending command\n{return_string}")
+        rep = wibpb.Status()
+        if not self.wib.send_command(req,rep,self.gui_print):
+            req = wibpb.CDFastCmd()
+            req.cmd = 2
+            rep = wibpb.Empty()
+            self.wib.send_command(req,rep)
+            self.change_pulser_status()
+            self.gui_print(f"Pulser toggled")
+        else:
+            self.gui_print(f"Toggle write:{rep.success}")
+            
+    def change_pulser_status(self):
+        if self.pulser:
+            self.pulser = False
+            self.pulser_status.setText("Off")
+        else:
+            self.pulser = True
+            self.pulser_status.setText("On")
+            
+    def set_pulser_status(self, status):
+        self.pulser = status
+        if status:
+            self.pulser_status.setText("On")
+        else:
+            self.pulser_status.setText("Off")
+            
+    def get_pulser_status(self):
+        return self.pulser
+    
+    #Once buffers are on, there's no way that they'll return 0 samples, even if you turn the FEMB off after
+    #So there's no need to set them false again
+    def set_femb_on(self, femb):
+        if (femb//2):
+            self.buf1_status = True
+        else:
+            self.buf0_status = True
+            
+    def get_femb_on(self):
+        return self.buf0_status, self.buf1_status
 
 #PyQT needs a separate class to be the validator
 class ValidIP(QtGui.QValidator):

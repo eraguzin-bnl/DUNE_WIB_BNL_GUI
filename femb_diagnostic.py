@@ -294,15 +294,18 @@ class FFTView(DataView):
         self.resize(None)
         
 class FEMBDiagnostics(QtWidgets.QWidget):
-    def __init__(self,wib):
+    def __init__(self, wib, print_gui, femb_status):
         super().__init__()
         QtWidgets.QWidget.__init__(self)
         self.femb=0
+        self.save_to = None
         #self._main = QtWidgets.QWidget()
         #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setCentralWidget(self._main)
         layout = QtWidgets.QVBoxLayout(self)
         self.wib = wib
+        self.print_gui = print_gui
+        self.get_femb_status = femb_status
         self.grid = QtWidgets.QGridLayout()
         self.views = [Hist2DView(femb=self.femb), FFTView(femb=self.femb), MeanView(femb=self.femb), RMSView(femb=self.femb)]
         for i,v in enumerate(self.views):
@@ -311,6 +314,15 @@ class FEMBDiagnostics(QtWidgets.QWidget):
         layout.addLayout(self.grid)
         
         nav_layout = QtWidgets.QHBoxLayout()
+        
+        self.femb_box = QtWidgets.QComboBox(self)
+        self.femb_box.setToolTip('Choose which FEMB to analyze')
+        self.femb_box.addItem("FEMB 0")
+        self.femb_box.addItem("FEMB 1")
+        self.femb_box.addItem("FEMB 2")
+        self.femb_box.addItem("FEMB 3")
+        self.femb_box.currentIndexChanged.connect(self.femb_change)
+        nav_layout.addWidget(self.femb_box)
         
         button = QtWidgets.QPushButton('Acquire')
         nav_layout.addWidget(button)
@@ -329,6 +341,12 @@ class FEMBDiagnostics(QtWidgets.QWidget):
         layout.addLayout(nav_layout)
         
         self.plot(None)
+        
+    @QtCore.pyqtSlot()
+    def femb_change(self):
+        self.femb = self.femb_box.currentIndex()
+        for i,v in enumerate(self.views):
+            v.femb = self.femb
     
     @QtCore.pyqtSlot()
     def toggle_continuous(self):
@@ -342,6 +360,17 @@ class FEMBDiagnostics(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def acquire_data(self):
+        buf0, buf1 = self.get_femb_status()
+        set_up = True
+        if (self.femb//2):
+            if (buf1 == 0):
+                set_up = False
+        else:
+            if (buf0 == 0):
+                set_up = False
+        if (set_up == False):
+            self.print_gui(f"Can't acquire data if you haven't run the power sequence for FEMB {self.femb}")
+            return
         data = self.wib.acquire_data(buf0=self.femb<2,buf1=self.femb>=2)
         if data is None:
             return
