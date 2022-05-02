@@ -51,11 +51,11 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         self.parent = parent
         button_grid = QtWidgets.QGridLayout()
         
-        lbl_0x1 = QtWidgets.QLabel("0x")
-        lbl_0x1.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        #lbl_0x1 = QtWidgets.QLabel("0x")
+        #lbl_0x1.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         
-        lbl_0x2 = QtWidgets.QLabel("0x")
-        lbl_0x2.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        #lbl_0x2 = QtWidgets.QLabel("0x")
+        #lbl_0x2.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         
         reg_label = QtWidgets.QLabel("Register")
         reg_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
@@ -74,31 +74,33 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             self.reg_box.setMinimumWidth(self.reg_box.minimumWidth() + 5)
             self.reg_box.setRange(0xA0010000, 0xA00C00C0)
         else:
-            self.reg_box.setMaximumWidth(50)
+            self.reg_box.setMaximumWidth(100)
             self.reg_box.setRange(0, (2**bits)-1)
         font = self.reg_box.font()
         font.setCapitalization(QtGui.QFont.AllUppercase)
         self.reg_box.setFont(font)
         self.reg_box.setToolTip(f"{name} Register ({bits} bits, hex)")
+        self.reg_box.setPrefix("0x")
         
         self.val_box = MySpinBox()
         #Size is the only difference. Both allow full span for values getting written to registers
         if (name == "WIB"):
             self.val_box.setMinimumWidth(self.val_box.minimumWidth() + 5)
         else:
-            self.val_box.setMaximumWidth(50)
+            self.val_box.setMaximumWidth(100)
         self.val_box.setRange(0, (2**bits)-1)
 #        self.val_box.setValue(0)
 #        self.val_box.setDisplayIntegerBase(16)
         self.val_box.setFont(font)
         self.val_box.setToolTip("{name} Register Value({bits} bits, hex)")
+        self.val_box.setPrefix("0x")
         
         self.result = QtWidgets.QLabel()
         self.result.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
         
-        button_grid.addWidget(lbl_0x1, 5, 1)
+        #button_grid.addWidget(lbl_0x1, 5, 1)
         button_grid.addWidget(reg_label, 4, 2)
-        button_grid.addWidget(lbl_0x2, 5, 3)
+        #button_grid.addWidget(lbl_0x2, 5, 3)
         button_grid.addWidget(value_label, 4, 4)
         
         button_grid.addWidget(self.reg_box, 5, 2)
@@ -120,7 +122,7 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             button_grid.addWidget(femb_label, 0, 2)
             
             self.femb_box = QtWidgets.QSpinBox()
-            self.femb_box.setMaximumWidth(40)
+            self.femb_box.setMaximumWidth(100)
             self.femb_box.setRange(0, 3)
             self.femb_box.setFont(font)
             self.femb_box.setToolTip("Which FEMB on the WIB?")
@@ -131,7 +133,7 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             button_grid.addWidget(femb_label, 0, 4)
             
             self.coldata_box = QtWidgets.QSpinBox()
-            self.coldata_box.setMaximumWidth(40)
+            self.coldata_box.setMaximumWidth(100)
             self.coldata_box.setRange(0, 1)
             self.coldata_box.setFont(font)
             self.coldata_box.setToolTip("Which COLDATA on the FEMB?")
@@ -141,33 +143,36 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
             chip_addr_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             button_grid.addWidget(chip_addr_label, 2, 2)
             
-            lbl_0xchip = QtWidgets.QLabel("0x")
-            lbl_0xchip.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            button_grid.addWidget(lbl_0xchip, 3, 1)
+            #lbl_0xchip = QtWidgets.QLabel("0x")
+            #lbl_0xchip.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            #button_grid.addWidget(lbl_0xchip, 3, 1)
             
             self.chip_addr_box = QtWidgets.QSpinBox()
-            self.chip_addr_box.setMaximumWidth(40)
+            self.chip_addr_box.setMaximumWidth(100)
             self.chip_addr_box.setRange(0, 0xF)
             self.chip_addr_box.setDisplayIntegerBase(16)
             self.chip_addr_box.setFont(font)
             self.chip_addr_box.setToolTip("8 bit chip address for COLDATA")
+            self.chip_addr_box.setPrefix("0x")
             button_grid.addWidget(self.chip_addr_box, 3, 2)
             
             page_label = QtWidgets.QLabel("Page")
             page_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
             button_grid.addWidget(page_label, 2, 4)
             
-            lbl_0xpage = QtWidgets.QLabel("0x")
-            lbl_0xpage.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-            button_grid.addWidget(lbl_0xpage, 3, 3)
+            #lbl_0xpage = QtWidgets.QLabel("0x")
+            #lbl_0xpage.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            #button_grid.addWidget(lbl_0xpage, 3, 3)
             
             self.page_box = QtWidgets.QSpinBox()
-            self.page_box.setMaximumWidth(40)
+            self.page_box.setMaximumWidth(100)
             self.page_box.setRange(0, 0xF)
             self.page_box.setDisplayIntegerBase(16)
             self.page_box.setFont(font)
             self.page_box.setToolTip("8 bit page in COLDATA")
+            self.page_box.setPrefix("0x")
             button_grid.addWidget(self.page_box, 3, 4)
+
             
             read_button.clicked.connect(lambda: self.coldata_peek(int(self.femb_box.value()),
                                                                   int(self.coldata_box.value()),
@@ -263,5 +268,7 @@ class WIBButtons3(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        layout.addWidget(WIBRegControlButtons(self, "WIB", 32))
-        layout.addWidget(WIBRegControlButtons(self, "COLDATA", 8))
+        self.wib_name = WIBRegControlButtons(self, "WIB", 32)
+        layout.addWidget(self.wib_name)
+        self.coldata_name = WIBRegControlButtons(self, "COLDATA", 8)
+        layout.addWidget(self.coldata_name)

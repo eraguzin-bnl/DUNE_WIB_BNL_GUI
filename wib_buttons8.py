@@ -59,4 +59,5 @@ class WIBButtons8(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        layout.addWidget(WIBScript(self))
+        self.script = WIBScript(self)
+        layout.addWidget(self.script)

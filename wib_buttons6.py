@@ -56,4 +56,5 @@ class WIBButtons6(QtWidgets.QWidget):
         self.print_gui = print_function
         layout = QtWidgets.QVBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignTop)
-        layout.addWidget(WIBFast(self))
+        self.fast = WIBFast(self)
+        layout.addWidget(self.fast)
