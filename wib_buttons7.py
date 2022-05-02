@@ -56,11 +56,11 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb.addItem("14 mV/fC")
         cb.addItem("25 mV/fC")
 
-        cb.setStyleSheet("QComboBox" "{" "background-color: black;" "}")
+        cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
 
         def combo_changed():
             if cb.currentIndex() == 0:
-                cb.setStyleSheet("QComboBox" "{" "background-color: black;" "}")
+                cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
             elif cb.currentIndex() == 1:
                 cb.setStyleSheet("QComboBox" "{" "background-color: darkorchid;" "}")
             elif cb.currentIndex() == 2:
@@ -198,7 +198,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         cb.currentIndexChanged.connect(combo_changed)       
         cb.currentIndexChanged.connect(setall)
 
-        cb.setToolTip("Turn this channe's single ended buffer on or off\nNote: Is overridden if the global differential buffer is on")
+        cb.setToolTip("Turn this channel's single ended buffer on or off\nNote: Is overridden if the global differential buffer is on")
         return cb
         
     def __init__(self,parent, femb, asic):
@@ -208,12 +208,13 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         self.channels = 16
         self.femb = femb
         self.asic = asic
-        self.coldata = (self.asic // 4) + 2 #COLDATA 0 is now 2, and 1 is now 3
+        self.coldata = 3 if (self.asic // 4 == 0) else 2
+        #self.coldata = (self.asic // 4) + 2 #COLDATA 0 is now 2, and 1 is now 3
         self.chip_num = (self.asic % 4) + 1
         #Remap these settings to the actual chip settings
         self.gain_dict = {0:0, 1:1, 2:2, 3:3}
         self.pulse_dict = {0:1, 1:0, 2:3, 3:2}
-        self.monitor_dict = {0:0, 1:1, 2:3}
+        self.monitor_dict = {0:0, 1:3, 2:1}
         self.ch_settings = {
                 "Test Cap": self.testcap,
                 "Gain": self.gain,
@@ -227,8 +228,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             label = QtWidgets.QLabel(k)
             button_grid.addWidget(label, 0, 1+i)
             
-        for i in range(self.channels + 2):
-            if (i == 17):
+        for i in range(self.channels + 1):
+            if (i == 16):
                 ch_button = QtWidgets.QPushButton(f"Set all")
             else:
                 ch_button = QtWidgets.QPushButton(f"Ch {i}")
@@ -241,11 +242,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
                 widget.setParent(self.parent)
                 button_grid.addWidget(widget, 1+i, 1+j)
 
-            
-        def temp():
-            print(self.parent.findChild(QtWidgets.QComboBox, "Monitor1").itemData(self.parent.findChild(QtWidgets.QComboBox, "Monitor1").currentIndex()))
         self.setLayout(button_grid)
-        #self.parent.findChild(QtWidgets.QComboBox, "Monitor1").currentIndexChanged.connect(temp)
 
         offset = self.channels + 2
         settings_label = QtWidgets.QLabel("Global LArASIC Settings")
@@ -351,25 +348,26 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         button_grid.addWidget(all_button, offset+7, 1, 1, 4)
 
     def getChannelVal(self, ch):
-        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{self.femb}{self.asic}{ch}")
+        test_cap_box = self.parent.findChild(QtWidgets.QComboBox, f"Test Cap{ch}{self.asic}{self.femb}")
         test_cap = 1 if (test_cap_box.currentIndex() == 0) else 0
-        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{self.femb}{self.asic}{ch}")
+        baseline_box = self.parent.findChild(QtWidgets.QComboBox, f"Baseline{ch}{self.asic}{self.femb}")
         baseline = baseline_box.currentIndex()
-        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Monitor{self.femb}{self.asic}{ch}")
+        monitor_box = self.parent.findChild(QtWidgets.QComboBox, f"Monitor{ch}{self.asic}{self.femb}")
         monitor = monitor_box.currentIndex()
-        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Buffer{self.femb}{self.asic}{ch}")
+        buffer_box = self.parent.findChild(QtWidgets.QComboBox, f"Buffer{ch}{self.asic}{self.femb}")
         buffer_val = buffer_box.currentIndex()
-        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{self.femb}{self.asic}{ch}")
+        gain_box = self.parent.findChild(QtWidgets.QComboBox, f"Gain{ch}{self.asic}{self.femb}")
         gain = self.gain_dict[gain_box.currentIndex()]
-        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{self.femb}{self.asic}{ch}")
+        peak_box = self.parent.findChild(QtWidgets.QComboBox, f"Peaking Time{ch}{self.asic}{self.femb}")
         peak_time = self.pulse_dict[peak_box.currentIndex()]
 
-        channel_val = (test_cap << 0) + (baseline << 1) + (gain << 2) + (peak_time << 4) + (monitor << 6) + (buffer_val << 7)
+        channel_val = (test_cap << 7) + (baseline << 6) + ((gain & 0x1) << 5) + ((gain & 0x2) << 3) + ((peak_time & 0x1) << 3) + ((peak_time & 0x2) << 1) +\
+            (monitor << 6) + (buffer_val << 7)
         return (channel_val)
 
     def sendChannel(self, ch):
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L214
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - ch):00X}\
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(130 + ch):00X}\
             {self.getChannelVal(ch):00X}\n".encode())
         command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
@@ -391,21 +389,22 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         leak_10x = (leak_box_val//2 == 1)
         filter_val = self.filter_cb.currentIndex()
         monitor_val = self.monitor_dict[self.monitor_cb.currentIndex()]
-        dac_switch = 0 if self.pulser_cb.currentIndex()==0 else 2
+        dac_switch = 0 if self.pulser_cb.currentIndex()==0 else 1
         dac_val = int(self.dac_sb.value())
 
-        global_reg1 = (match_val << 0) + (buffer_val << 1) + (coupling_val << 2) + (leak_10x << 3) + (filter_val << 4) + (monitor_val << 5) + (leak << 7)
-
-        global_reg2 = (dac_val << 0) + (dac_switch << 6)
+        global_reg1 = (match_val << 7) + (buffer_val << 6) + (coupling_val << 5) + (leak_10x << 4) + (filter_val << 3) + (monitor_val << 1) + (leak << 0)
+        #Reverse bits
+        global_reg2 = dac_switch + (((dac_val & 0x20) >> 5) << 2) + (((dac_val & 0x10) >> 4) << 3) + (((dac_val & 0x08) >> 3) << 4) +\
+                         (((dac_val & 0x04) >> 2) << 5) + (((dac_val & 0x02) >> 1) << 6) + (((dac_val & 0x01) >> 0) << 7)
 
         return(global_reg1, global_reg2)
 
     def sendGlobal(self):
         glo1, glo2 = self.getGlobalVal()
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {2} {self.chip_num} {81} {glo1:00X}\n", 'utf-8')
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {self.chip_num} {80} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {self.chip_num} {81} {glo1:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {self.chip_num} {80} {glo2:00X}\n".encode())
         command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
         #self.parent.print_gui(f"Sending command\n{return_string}")
@@ -442,7 +441,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             self.parent.parent.set_pulser()
             temp_toggle = True
             
-        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n", 'utf-8')
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {2} {0} {20} {8}\n", 'utf-8')
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {0} {20} {8}\n".encode())
         req = wibpb.Script()
         req.script = bytes(command_bytes)
         rep = wibpb.Status()

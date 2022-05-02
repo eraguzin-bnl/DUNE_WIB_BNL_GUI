@@ -265,9 +265,9 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         self.glo2_box.setFont(font)
         self.glo2_box.setToolTip("Sets all Global 2 regs to this")
         
-        button_grid.addWidget(self.ch_box, offset+5, 1)
-        button_grid.addWidget(self.glo1_box, offset+5, 2)
-        button_grid.addWidget(self.glo2_box, offset+5, 3)
+        button_grid.addWidget(self.ch_box, offset+8, 1)
+        button_grid.addWidget(self.glo1_box, offset+8, 2)
+        button_grid.addWidget(self.glo2_box, offset+8, 3)
         
         send_button = QtWidgets.QPushButton('Send2')
         send_button.setToolTip('Write to all ASIC channel and globals')
@@ -417,13 +417,13 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         
     def sendFEMB2(self):
         for i in range(1, 5, 1):
-            for j in range(0x80, 0x90, 1):
+            for j in range(0x82, 0x92, 1):
                 self.coldata_poke(0, 0, 2, i, j, self.ch_box.value())
                 self.coldata_poke(0, 0, 3, i, j, self.ch_box.value())
-            self.coldata_poke(0, 0, 2, i, 0x90, self.glo1_box.value())
-            self.coldata_poke(0, 0, 2, i, 0x91, self.glo2_box.value())
-            self.coldata_poke(0, 0, 3, i, 0x90, self.glo1_box.value())
-            self.coldata_poke(0, 0, 3, i, 0x91, self.glo2_box.value())
+            self.coldata_poke(0, 0, 2, i, 0x80, self.glo1_box.value())
+            self.coldata_poke(0, 0, 2, i, 0x81, self.glo2_box.value())
+            self.coldata_poke(0, 0, 3, i, 0x80, self.glo1_box.value())
+            self.coldata_poke(0, 0, 3, i, 0x81, self.glo2_box.value())
         
         self.coldata_poke(0, 0, 2, 0, 0x20, 8)
         self.coldata_poke(0, 0, 3, 0, 0x20, 8)
