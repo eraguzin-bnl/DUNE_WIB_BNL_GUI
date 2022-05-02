@@ -226,10 +226,10 @@ class WIBMain(QtWidgets.QMainWindow):
             
     def toggle_pulser(self):
         command_bytes = bytearray("delay 5\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {0} {1} {2} {0} {20} {1}\n".encode())
+        #command_bytes.extend(f"cd-i2c {0} {1} {2} {0} {20} {1}\n".encode())
         for i in range(4):
-            for j in range(2):
-                command_bytes.extend(f"cd-i2c {i} {j} {2} {0} {20} {1}\n".encode())
+            for j in range(2, 4, 1):
+                command_bytes.extend(f"cd-i2c {i} {0} {j} {0} {20} {1}\n".encode())
         
         req = wibpb.Script()
         req.script = bytes(command_bytes)

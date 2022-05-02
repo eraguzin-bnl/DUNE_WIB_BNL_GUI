@@ -74,7 +74,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         self.channels = 16
         self.femb = femb
         self.asic = asic
-        self.coldata = self.asic // 4
+        self.coldata = (self.asic // 4) + 2 #COLDATA 0 is now 2, and 1 is now 3
         self.chip_num = (self.asic % 4) + 1
         #Remap these settings to the actual chip settings
         self.gain_dict = {0:0, 1:1, 2:2, 3:3}
@@ -227,9 +227,9 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
     def sendChannel(self, ch):
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L214
-        command_bytes = bytearray(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {(143 - ch):00X}\
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - ch):00X}\
             {self.getChannelVal(ch):00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {0} {20} {8}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
         self.parent.print_gui(f"Sending command\n{return_string}")
 
@@ -260,11 +260,11 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
     def sendGlobal(self):
         glo1, glo2 = self.getGlobalVal()
-        command_bytes = bytearray(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {90} {glo1:00X}\n", 'utf-8')
-        command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {91} {glo2:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {90} {glo1:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {91} {glo2:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {0} {20} {8}\n".encode())
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n", 'utf-8')
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {90} {glo1:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {91} {glo2:00X}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
         #self.parent.print_gui(f"Sending command\n{return_string}")
 
@@ -280,7 +280,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         #Channel 0 is internal WIB register 0x8F and channel 15 is 0x80
         #but you're subtracting it and want the end result to be in hex, so I start it in decimal
         for i in range(self.channels):
-            command_bytes.extend(f"cd-i2c {self.femb} {self.coldata} {2} {self.chip_num} {(143 - i):00X}\
+            command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - i):00X}\
                 {self.getChannelVal(i):00X}\n".encode())
         
         return_string = command_bytes.decode('utf-8')
@@ -300,7 +300,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
             self.parent.parent.set_pulser()
             temp_toggle = True
             
-        command_bytes = bytearray(f"cd-i2c {self.femb} {self.coldata} {2} {0} {20} {8}\n", 'utf-8')
+        command_bytes = bytearray(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n", 'utf-8')
         req = wibpb.Script()
         req.script = bytes(command_bytes)
         rep = wibpb.Status()

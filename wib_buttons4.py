@@ -136,7 +136,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         #Remap these settings to the actual chip settings
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L191
         #Don't know why gain dict breaks the rules
-        self.gain_dict = {0:0, 1:1, 2:2, 3:3}
+        self.gain_dict = {0:2, 1:1, 2:3, 3:0}
         self.pulse_dict = {0:1, 1:0, 2:3, 3:2}
         self.femb_settings = {
                 "Enable": self.enabled,
@@ -235,6 +235,102 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
         button_grid.addWidget(send_button, offset+4, 1)
+        
+        self.ch_box = QtWidgets.QSpinBox()
+        self.ch_box.setRange(0, 0xFF)
+        self.ch_box.setDisplayIntegerBase(16)
+        self.ch_box.setValue(0x81)
+        font = self.ch_box.font()
+        font.setCapitalization(QtGui.QFont.AllUppercase)
+        self.ch_box.setFont(font)
+        self.ch_box.setToolTip("Sets all channels to this")
+        
+        self.glo1_box = QtWidgets.QSpinBox()
+        self.glo1_box.setRange(0, 0xFF)
+        self.glo1_box.setDisplayIntegerBase(16)
+        self.glo1_box.setValue(0x0)
+        font = self.glo1_box.font()
+        font.setCapitalization(QtGui.QFont.AllUppercase)
+        self.glo1_box.setFont(font)
+        self.glo1_box.setToolTip("Sets all Global 1 regs to this")
+        
+        self.glo2_box = QtWidgets.QSpinBox()
+        self.glo2_box.setRange(0, 0xFF)
+        self.glo2_box.setDisplayIntegerBase(16)
+        self.glo2_box.setValue(0x09)
+        font = self.glo2_box.font()
+        font.setCapitalization(QtGui.QFont.AllUppercase)
+        self.glo2_box.setFont(font)
+        self.glo2_box.setToolTip("Sets all Global 2 regs to this")
+        
+        button_grid.addWidget(self.ch_box, offset+5, 1)
+        button_grid.addWidget(self.glo1_box, offset+5, 2)
+        button_grid.addWidget(self.glo2_box, offset+5, 3)
+        
+        send_button = QtWidgets.QPushButton('Send2')
+        send_button.setToolTip('Write to all ASIC channel and globals')
+        send_button.clicked.connect(lambda: self.sendFEMB2())
+        button_grid.addWidget(send_button, offset+6, 1)
+        
+    def sendFEMB2(self):
+        for i in range(1, 5, 1):
+            for j in range(0x80, 0x90, 1):
+                self.coldata_poke(0, 0, 2, i, j, self.ch_box.value())
+                self.coldata_poke(0, 0, 3, i, j, self.ch_box.value())
+            self.coldata_poke(0, 0, 2, i, 0x90, self.glo1_box.value())
+            self.coldata_poke(0, 0, 2, i, 0x91, self.glo2_box.value())
+            self.coldata_poke(0, 0, 3, i, 0x90, self.glo1_box.value())
+            self.coldata_poke(0, 0, 3, i, 0x91, self.glo2_box.value())
+        
+        self.coldata_poke(0, 0, 2, 0, 0x20, 8)
+        self.coldata_poke(0, 0, 3, 0, 0x20, 8)
+        
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command sent")
+        
+        self.coldata_poke(0, 0, 2, 0, 0x20, 3)
+        self.coldata_poke(0, 0, 2, 0, 0x20, 3)
+        
+        req = wibpb.CDFastCmd()
+        req.cmd = 2
+        rep = wibpb.Empty()
+        self.parent.wib.send_command(req,rep)
+        self.parent.print_gui(f"Fast command sent")
+        
+        self.coldata_peek(0, 0, 2, 0, 0x24)
+        self.coldata_peek(0, 0, 3, 0, 0x24)
+        
+        
+    def coldata_peek(self, femb, coldata, chip_addr, page, reg):
+        req = wibpb.CDPeek()
+        rep = wibpb.CDRegValue()
+        req.femb_idx = femb
+        req.coldata_idx = coldata
+        req.chip_addr = chip_addr
+        req.reg_page = page
+        req.reg_addr = reg
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
+            self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
+            self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was read as 0x{rep.data:02X}")
+        
+    def coldata_poke(self, femb, coldata, chip_addr, page, reg, data):
+        req = wibpb.CDPoke()
+        rep = wibpb.CDRegValue()
+        req.femb_idx = femb
+        req.coldata_idx = coldata
+        req.chip_addr = chip_addr
+        req.reg_page = page
+        req.reg_addr = reg
+        req.data = data
+        if not self.parent.wib.send_command(req,rep,self.parent.print_gui):
+            self.parent.print_gui(f"FEMB 0x{rep.femb_idx:01X}, COLDATA 0x{rep.coldata_idx:01X}")
+            self.parent.print_gui(f"Chip Address 0x{rep.chip_addr:02X}, Page 0x{rep.reg_page:02X}")
+            self.parent.print_gui(f"Register 0x{rep.reg_addr:02X} was written to 0x{rep.data:02X}")
+        
     def sendFEMB(self):
         req = wibpb.ConfigureWIB()
         for i in range(self.fembs):
