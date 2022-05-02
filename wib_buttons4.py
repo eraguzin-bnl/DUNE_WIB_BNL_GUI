@@ -138,7 +138,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         #Remap these settings to the actual chip settings
         #https://github.com/DUNE-DAQ/dune-wib-firmware/blob/master/sw/src/femb_3asic.cc#L191
         #Don't know why gain dict breaks the rules
-        self.gain_dict = {0:2, 1:1, 2:3, 3:0}
+        self.gain_dict = {0:3, 1:2, 2:0, 3:1}
         self.pulse_dict = {0:1, 1:0, 2:3, 3:2}
         self.femb_settings = {
                 "Enable": self.enabled,
@@ -237,6 +237,12 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
         button_grid.addWidget(send_button, offset+4, 1)
+        
+        self.match_box = QtWidgets.QComboBox()
+        self.match_box.addItem("Off")
+        self.match_box.addItem("On")
+        self.match_box.setToolTip("Sets gain matching on or off")
+        button_grid.addWidget(self.match_box, offset+5, 1)
         
         self.ch_box = QtWidgets.QSpinBox()
         self.ch_box.setRange(0, 0xFF)
@@ -492,6 +498,8 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
                 dac_box = self.parent.findChild(QtWidgets.QSpinBox, f"Pulse DAC{i}")
                 femb_conf.pulse_dac = int(dac_box.value())
                 
+                femb_conf.gain_match = (self.match_box.currentIndex() == 1)
+                
                 leak_box_val = self.parent.findChild(QtWidgets.QComboBox, f"Leakage Current{i}").currentIndex()
                 femb_conf.leak = (leak_box_val%2 == 0)
                 femb_conf.leak_10x = (leak_box_val//2 == 1)
@@ -511,6 +519,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         req.pulser = (self.pulser_box.currentIndex() == 0)
         req.adc_test_pattern = (self.adc_test_box.currentIndex() == 1)
         req.frame_dd = (self.frame_box.currentIndex() == 1)
+        
         
         if (self.adc_check.isChecked()):
             req.adc_conf.reg_0 = int(self.parent.findChild(QtWidgets.QSpinBox, "reg0").value())
