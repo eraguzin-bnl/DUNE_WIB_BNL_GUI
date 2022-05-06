@@ -80,7 +80,8 @@ class WIBRegControlButtons(QtWidgets.QGroupBox):
         font.setCapitalization(QtGui.QFont.AllUppercase)
         self.reg_box.setFont(font)
         self.reg_box.setToolTip(f"{name} Register ({bits} bits, hex)")
-        self.reg_box.setPrefix("0x")
+#For some reason this breaks the box
+#        self.reg_box.setPrefix("0x")
         
         self.val_box = MySpinBox()
         #Size is the only difference. Both allow full span for values getting written to registers

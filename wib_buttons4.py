@@ -233,16 +233,20 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
             sb.setParent(self.parent)
             button_grid.addWidget(sb, offset+(2*(num//4))+1, 1+num%4)
             
+        gain_match_label = QtWidgets.QLabel("Gain match")
+        gain_match_label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+        button_grid.addWidget(gain_match_label, offset+4, 1)
+        
+        self.match_box = QtWidgets.QComboBox()
+        self.match_box.addItem("On")
+        self.match_box.addItem("Off")
+        self.match_box.setToolTip("Sets gain matching on or off")
+        button_grid.addWidget(self.match_box, offset+5, 1)
+        
         send_button = QtWidgets.QPushButton('Send')
         send_button.setToolTip('Send these values to the WIB')
         send_button.clicked.connect(lambda: self.sendFEMB())
-        button_grid.addWidget(send_button, offset+4, 1)
-        
-        self.match_box = QtWidgets.QComboBox()
-        self.match_box.addItem("Off")
-        self.match_box.addItem("On")
-        self.match_box.setToolTip("Sets gain matching on or off")
-        button_grid.addWidget(self.match_box, offset+5, 1)
+        button_grid.addWidget(send_button, offset+6, 1)
         
         self.ch_box = QtWidgets.QSpinBox()
         self.ch_box.setRange(0, 0xFF)
@@ -278,7 +282,7 @@ class FEMBControlButtons(QtWidgets.QGroupBox):
         send_button = QtWidgets.QPushButton('Send2')
         send_button.setToolTip('Write to all ASIC channel and globals')
         send_button.clicked.connect(lambda: self.sendFEMB2())
-        button_grid.addWidget(send_button, offset+6, 1)
+        button_grid.addWidget(send_button, offset+9, 1)
 
 
         load_button = QtWidgets.QPushButton('Load Config')

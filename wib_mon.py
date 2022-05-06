@@ -61,6 +61,7 @@ class IVSensor(Sensor):
         self.I.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.I.setStyleSheet('QLabel { font-weight: bold; color: #6c71c4; } ')
         sub_layout.addWidget(self.I)
+        self.I.setMinimumWidth(100);
         
         layout.addWidget(sub)
             

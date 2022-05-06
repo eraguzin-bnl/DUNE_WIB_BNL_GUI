@@ -36,8 +36,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
                 cb.setStyleSheet("QComboBox" "{" "background-color: red;" "}")
 
         def setall():
-            if (cb.objectName()[0:10] == "Test Cap17" and len(cb.objectName()) > 11):
-                for i in range(0, 17):
+            if (cb.objectName()[0:10] == "Test Cap16" and len(cb.objectName()) > 11):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Test Cap" + str(i) + cb.objectName()[10:12])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -69,8 +69,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
                 cb.setStyleSheet("QComboBox" "{" "background-color: midnightblue;" "}")
 
         def setall():
-            if (cb.objectName()[0:6] == "Gain17" and len(cb.objectName()) > 7):
-                for i in range(0, 17):
+            if (cb.objectName()[0:6] == "Gain16" and len(cb.objectName()) > 7):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Gain" + str(i) + cb.objectName()[6:8])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -103,8 +103,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
                 cb.setStyleSheet("QComboBox" "{" "background-color: steelblue;" "}")
 
         def setall():
-            if (cb.objectName()[0:14] == "Peaking Time17" and len(cb.objectName()) > 15):
-                for i in range(0, 17):
+            if (cb.objectName()[0:14] == "Peaking Time16" and len(cb.objectName()) > 15):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Peaking Time" + str(i) + cb.objectName()[14:16])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -131,8 +131,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
 
         def setall():
-            if (cb.objectName()[0:10] == "Baseline17" and len(cb.objectName()) > 11):
-                for i in range(0, 17):
+            if (cb.objectName()[0:10] == "Baseline16" and len(cb.objectName()) > 11):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Baseline" + str(i) + cb.objectName()[10:12])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -158,8 +158,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
                 cb.setStyleSheet("QComboBox" "{" "background-color: seagreen;" "}")
 
         def setall():
-            if (cb.objectName()[0:9] == "Monitor17" and len(cb.objectName()) > 10):
-                for i in range(0, 17):
+            if (cb.objectName()[0:9] == "Monitor16" and len(cb.objectName()) > 10):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Monitor" + str(i) + cb.objectName()[9:11])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -188,8 +188,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
 
 
         def setall():
-            if (cb.objectName()[0:8] == "Buffer17" and len(cb.objectName()) > 9):
-                for i in range(0, 17):
+            if (cb.objectName()[0:8] == "Buffer16" and len(cb.objectName()) > 9):
+                for i in range(0, 16):
                     cbox = self.parent.findChild(QtWidgets.QComboBox, "Buffer" + str(i) + cb.objectName()[8:10])
                     cbox.setCurrentIndex(cb.currentIndex())
 
@@ -405,7 +405,8 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {self.chip_num} {80} {glo2:00X}\n".encode())
         command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {self.chip_num} {81} {glo1:00X}\n".encode())
         command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {self.chip_num} {80} {glo2:00X}\n".encode())
-        command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {0} {20} {8}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {2} {0} {20} {8}\n".encode())
+        command_bytes.extend(f"cd-i2c {self.femb} {0} {3} {0} {20} {8}\n".encode())
         return_string = command_bytes.decode('utf-8')
         #self.parent.print_gui(f"Sending command\n{return_string}")
 
@@ -421,7 +422,7 @@ class ChannelControlButtons(QtWidgets.QGroupBox):
         #Channel 0 is internal WIB register 0x8F and channel 15 is 0x80
         #but you're subtracting it and want the end result to be in hex, so I start it in decimal
         for i in range(self.channels):
-            command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(143 - i):00X}\
+            command_bytes.extend(f"cd-i2c {self.femb} {0} {self.coldata} {self.chip_num} {(130 + i):00X}\
                 {self.getChannelVal(i):00X}\n".encode())
         
         return_string = command_bytes.decode('utf-8')

@@ -294,35 +294,35 @@ class WIBMain(QtWidgets.QMainWindow):
                                                 "reg29":  hex(int(self.buttons4.fembcontrol.parent.findChild(QtWidgets.QSpinBox, "reg29").value())) ,
                                                 "reg30":  hex(int(self.buttons4.fembcontrol.parent.findChild(QtWidgets.QSpinBox, "reg30").value())) ,
                                             } ,
-                            "channel-control": { f"FEMB{i}": { f"ASIC{j}" : { f"ch{k}" if k < 17 else "set-all" if k == 17 else "coupling" if k== 18 else "buffer" if k == 19 else "leakage-current" 
-                                                                                        if k==20 else "ch0-monitor" if k==21 else "ch15-filter" if k==22 else "DAC-gain-matching" if k ==23 else "pulser-DAC-setting" if k==24 
-                                                                                        else "pulser-DAC-value" if k==25 else ""
+                            "channel-control": { f"FEMB{i}": { f"ASIC{j}" : { f"ch{k}" if k < 16 else "set-all" if k == 16 else "coupling" if k== 17 else "buffer" if k == 18 else "leakage-current" 
+                                                                                        if k==19 else "ch0-monitor" if k==20 else "ch15-filter" if k==21 else "DAC-gain-matching" if k ==22 else "pulser-DAC-setting" if k==23 
+                                                                                        else "pulser-DAC-value" if k==24 else ""
                                                                                         : {   "test-cap": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Test Cap{k}{j}{i}").currentIndex(),
                                                                                             "gain": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Gain{k}{j}{i}").currentIndex(),
                                                                                             "peaking-time": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Peaking Time{k}{j}{i}").currentIndex(),
                                                                                             "baseline": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Baseline{k}{j}{i}").currentIndex(),
                                                                                             "monitor": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Monitor{k}{j}{i}").currentIndex(),
                                                                                             "buffer": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Buffer{k}{j}{i}").currentIndex()
-                                                                                        } if k < 17 else 
+                                                                                        } if k < 16 else 
                                                                                         {   "test-cap": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Test Cap{k}{j}{i}").currentIndex(),
                                                                                             "gain": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Gain{k}{j}{i}").currentIndex(),
                                                                                             "peaking-time": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Peaking Time{k}{j}{i}").currentIndex(),
                                                                                             "baseline": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Baseline{k}{j}{i}").currentIndex(),
                                                                                             "monitor": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Monitor{k}{j}{i}").currentIndex(),
                                                                                             "buffer": self.buttons7.channelPane.channelButtons[(i*8)+j].findChild(QtWidgets.QComboBox, f"Buffer{k}{j}{i}").currentIndex()
-                                                                                        } if k == 17 else
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].coupling_cb.currentIndex() if k== 18 else
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].buffer_cb.currentIndex() if k == 19 else
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].leakage_cb.currentIndex() if k==20 else 
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].monitor_cb.currentIndex() if k==21 else
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].filter_cb.currentIndex() if k==22 else 
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].match_cb.currentIndex() if k ==23 else 
-                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].pulser_cb.currentIndex() if k==24 else 
-                                                                                        hex(int(self.buttons7.channelPane.channelButtons[(i*8)+j].dac_sb.value())) if k==25 else ""
+                                                                                        } if k == 16 else
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].coupling_cb.currentIndex() if k== 17 else
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].buffer_cb.currentIndex() if k == 18 else
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].leakage_cb.currentIndex() if k==19 else 
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].monitor_cb.currentIndex() if k==20 else
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].filter_cb.currentIndex() if k==21 else 
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].match_cb.currentIndex() if k ==22 else 
+                                                                                        self.buttons7.channelPane.channelButtons[(i*8)+j].pulser_cb.currentIndex() if k==23 else 
+                                                                                        hex(int(self.buttons7.channelPane.channelButtons[(i*8)+j].dac_sb.value())) if k==24 else ""
                                                                                         
                                                             
                                                                                                             
-                                                                              for k in range(26) 
+                                                                              for k in range(25) 
                                                                             } 
                                                                 for j in range(8) 
                                                             } 
@@ -383,6 +383,8 @@ class WIBMain(QtWidgets.QMainWindow):
             coldataDict = {colData.femb_box: "FEMB", colData.coldata_box: "COLDATA", colData.chip_addr_box: "chip-addr", colData.page_box: "page", 
                             colData.reg_box: "register", colData.val_box: "value"}
             for key,value in coldataDict.items():
+                print(key)
+                print(value)
                 if (key != (colData.femb_box or colData.coldata_box)):
                     key.setValue(int(self.data['wib-control']['coldata-registers'][f"{value}"], 16))
                 else:
@@ -425,7 +427,7 @@ class WIBMain(QtWidgets.QMainWindow):
                     channelControl.match_cb.setCurrentIndex(self.data['channel-control'][f"FEMB{i}"][f"ASIC{j}"]['DAC-gain-matching'])
                     channelControl.pulser_cb.setCurrentIndex(self.data['channel-control'][f"FEMB{i}"][f"ASIC{j}"]['pulser-DAC-setting'])
                     channelControl.dac_sb.setValue(int(self.data['channel-control'][f"FEMB{i}"][f"ASIC{j}"]['pulser-DAC-value'], 16))
-                    for k in range(17):
+                    for k in range(16):
                         for key,value in settingsDict.items():
                             child = channelControl.findChild(QtWidgets.QComboBox, f"{key}{k}{j}{i}")
                             try:
@@ -547,7 +549,7 @@ class ValidIP(QtGui.QValidator):
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(current_dir, "settings.ini")
+    config_path = os.path.join(current_dir, "settings_gui.ini")
 
     #Prevent kernel dying in second run
     #https://stackoverflow.com/questions/40094086/python-kernel-dies-for-second-run-of-pyqt5-gui
