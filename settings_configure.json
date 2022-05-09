@@ -1,81 +1,97 @@
-
 {
-
-"cold": true,
-"pulser": false,
-
-"enabled_fembs": [true, false, false, false],
-
-"femb_configs": [
-
-    {
-        "test_cap": false,
-        "gain": 0,
-        "peak_time": 0,
-        "baseline": 0,
-        "pulse_dac": 0,
-
-        "leak": 0,
-        "leak_10x": false,
-        "ac_couple": true,
-        "buffer": 1,
-
-        "strobe_skip": 255,
-        "strobe_delay": 255,
-        "strobe_length": 255
-    },
-
-    {
-        "test_cap": false,
-        "gain": 0,
-        "peak_time": 0,
-        "baseline": 0,
-        "pulse_dac": 0,
-
-        "leak": 0,
-        "leak_10x": false,
-        "ac_couple": true,
-        "buffer": 1,
-
-        "strobe_skip": 255,
-        "strobe_delay": 255,
-        "strobe_length": 255
-    },
-
-    {
-        "test_cap": false,
-        "gain": 0,
-        "peak_time": 0,
-        "baseline": 0,
-        "pulse_dac": 0,
-
-        "leak": 0,
-        "leak_10x": false,
-        "ac_couple": true,
-        "buffer": 1,
-
-        "strobe_skip": 255,
-        "strobe_delay": 255,
-        "strobe_length": 255
-    },
-
-    {
-        "test_cap": false,
-        "gain": 0,
-        "peak_time": 0,
-        "baseline": 0,
-        "pulse_dac": 0,
-
-        "leak": 0,
-        "leak_10x": false,
-        "ac_couple": true,
-        "buffer": 1,
-
-        "strobe_skip": 255,
-        "strobe_delay": 255,
-        "strobe_length": 255
+    "ip": "192.168.121.1",
+    "pulser": false,
+    "enabled_fembs": [
+        true,
+        false,
+        false,
+        false
+    ],
+    "femb1": {
+        "channel_setting": [
+            {
+                "channels": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "test_cap": false,
+                "gain": 0,
+                "peak_time": 0,
+                "baseline": 0,
+                "monitor": 0,
+                "buffer": 0
+            },
+            {
+                "channels": [
+                    6,
+                    7,
+                    8,
+                    9
+                ],
+                "test_cap": false,
+                "gain": 0,
+                "peak_time": 0,
+                "baseline": 0,
+                "pulse_dac": 0,
+                "leak": 0,
+                "leak_10x": false,
+                "ac_couple": true,
+                "buffer": 1
+            }
+        ],
+        "asic_settings": [
+            {
+                "asics": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "ac_couple": true,
+                "global_buffer": false,
+                "leak": 0,
+                "leak_10x": false,
+                "ch0_monitor": false,
+                "ch15_filter": false,
+                "gain_matching": false,
+                "pulse_setting": 0,
+                "pulse_dac": 0,
+                "strobe_skip": 255,
+                "strobe_delay": 255,
+                "strobe_length": 255
+            }
+        ],
+        "femb_settings": [
+            {
+                "asics": [
+                    0,
+                    1,
+                    2,
+                    3
+                ],
+                "strobe_skip": 255,
+                "strobe_delay": 255,
+                "strobe_length": 255,
+                "pulser": "on",
+                "temp_settings": "warm",
+                "adc_test": 1,
+                "coldata_frame": "FRAME-14",
+                "coldadc_override": true,
+                "coldata_0": 0,
+                "coldata_4": 0,
+                "coldata_24": 0,
+                "coldata_25": 0,
+                "coldata_26": 0,
+                "coldata_27": 0,
+                "coldata_29": 0,
+                "coldata_30": 0
+            }
+        ]
     }
-
-]
-
 }
