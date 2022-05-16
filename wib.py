@@ -21,6 +21,8 @@ class WIB:
             self.socket.setsockopt(zmq.RCVTIMEO, 15000) # milliseconds
         elif (type(req) == type(wibpb.Calibrate())):
             self.socket.setsockopt(zmq.RCVTIMEO, 20000) # milliseconds
+        elif (type(req) == type(wibpb.ResetTiming())):
+            self.socket.setsockopt(zmq.RCVTIMEO, 20000) # milliseconds
         else:
             self.socket.setsockopt(zmq.RCVTIMEO, 5000) # milliseconds
         try:
