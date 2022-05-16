@@ -109,7 +109,7 @@ class WIB:
         print('Successful: ',rep.success)
         return rep.success
         
-    def acquire_data(self,buf0=True,buf1=True,deframe=True,channels=True,ignore_failure=False,trigger_command=0,trigger_rec_ticks=0,trigger_timeout_ms=0):
+    def acquire_data(self,buf0=True,buf1=True,deframe=True,channels=True,ignore_failure=False,trigger_command=0,trigger_rec_ticks=0,trigger_timeout_ms=0, print_gui=None):
         print('Reading out WIB spy buffer')
         req = wibpb.ReadDaqSpy()
         req.buf0 = buf0
@@ -120,7 +120,7 @@ class WIB:
         req.trigger_rec_ticks = trigger_rec_ticks
         req.trigger_timeout_ms = trigger_timeout_ms
         rep = wibpb.ReadDaqSpy.DeframedDaqSpy()
-        self.send_command(req,rep)
+        self.send_command(req,rep,print_gui=print_gui)
         print('Successful:',rep.success)
         if not ignore_failure and not rep.success:
             return None

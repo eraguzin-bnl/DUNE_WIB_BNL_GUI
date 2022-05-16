@@ -475,10 +475,10 @@ class WIBScope(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def acquire_data(self):
         buf0, buf1 = self.get_femb_status()
-        if (buf0 == 0) and (buf1 == 0):
-            self.print_gui("No FEMBs have been initiated! Can't get buffer data!")
-            return
-        self.timestamps,self.samples = self.wib.acquire_data(buf0 = buf0, buf1 = buf1, ignore_failure=True)
+#        if (buf0 == 0) and (buf1 == 0):
+#            self.print_gui("No FEMBs have been initiated! Can't get buffer data!")
+#            return
+        self.timestamps,self.samples = self.wib.acquire_data(buf0 = buf0, buf1 = buf1, ignore_failure=True, print_gui = self.print_gui)
         
         for view in self.views:
             view.load_data()
