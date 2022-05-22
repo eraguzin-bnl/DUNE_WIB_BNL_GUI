@@ -360,17 +360,17 @@ class FEMBDiagnostics(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def acquire_data(self):
-        buf0, buf1 = self.get_femb_status()
-        set_up = True
-        if (self.femb//2):
-            if (buf1 == 0):
-                set_up = False
-        else:
-            if (buf0 == 0):
-                set_up = False
-        if (set_up == False):
-            self.print_gui(f"Can't acquire data if you haven't run the power sequence for FEMB {self.femb}")
-            return
+#        buf0, buf1 = self.get_femb_status()
+#        set_up = True
+#        if (self.femb//2):
+#            if (buf1 == 0):
+#                set_up = False
+#        else:
+#            if (buf0 == 0):
+#                set_up = False
+#        if (set_up == False):
+#            self.print_gui(f"Can't acquire data if you haven't run the power sequence for FEMB {self.femb}")
+#            return
         data = self.wib.acquire_data(buf0=self.femb<2,buf1=self.femb>=2)
         if data is None:
             return

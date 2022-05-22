@@ -474,7 +474,9 @@ class WIBScope(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def acquire_data(self):
-        buf0, buf1 = self.get_femb_status()
+#        buf0, buf1 = self.get_femb_status()
+        buf0 = True
+        buf1 = True
 #        if (buf0 == 0) and (buf1 == 0):
 #            self.print_gui("No FEMBs have been initiated! Can't get buffer data!")
 #            return
