@@ -286,6 +286,13 @@ class SignalView(QtWidgets.QWidget):
         self.pedestal = selector.get_pedestal()
         self.distribute = selector.get_distribute()
         self.fft = selector.get_fft()
+
+        fembs_used = []
+        for i in self.selected:
+            if (i[0] not in fembs_used):
+                fembs_used.append(i[0])
+
+        self.data_source.fembs_used = fembs_used
         self.load_data()
         self.plot_signals()
         
@@ -334,6 +341,7 @@ class WIBScope(QtWidgets.QWidget):
         self.wib = wib
         self.print_gui = print_gui
         self.get_femb_status = femb_status
+        self.fembs_used = []
         #self._main = QtWidgets.QWidget()
         #self._main.setFocusPolicy(QtCore.Qt.StrongFocus)
         #self.setCentralWidget(self._main)
@@ -475,11 +483,11 @@ class WIBScope(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def acquire_data(self):
 #        buf0, buf1 = self.get_femb_status()
-        buf0 = True
-        buf1 = True
-#        if (buf0 == 0) and (buf1 == 0):
-#            self.print_gui("No FEMBs have been initiated! Can't get buffer data!")
-#            return
+        buf0 = True if 0 in self.fembs_used or 1 in self.fembs_used else False
+        buf1 = True if 2 in self.fembs_used or 3 in self.fembs_used else False
+        if (buf0 == False) and (buf1 == False):
+            self.print_gui("Select which FEMBs you want to read out first!")
+            return
         self.timestamps,self.samples = self.wib.acquire_data(buf0 = buf0, buf1 = buf1, ignore_failure=True, print_gui = self.print_gui)
         
         for view in self.views:
